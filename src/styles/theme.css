@@ -1,0 +1,19 @@
+:root {
+  --payslip-bg: #f3f5f9;
+  --payslip-surface: #ffffff;
+  --payslip-ink: #172033;
+  --payslip-muted: #697386;
+  --payslip-line: #e3e8ef;
+  --payslip-line-strong: #cbd5e1;
+  --payslip-accent: #8d100e;
+  --payslip-accent-rgb: 141, 16, 14;
+  --payslip-accent-soft: #fdf3f2;
+  --payslip-accent-border: #f3cecb;
+  --payslip-accent-strong: #6f100d;
+  --payslip-danger: #b42318;
+  --payslip-radius: 18px;
+  --payslip-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
+  --payslip-success: #198754;
+  --bs-primary: #8d100e;
+  --bs-primary-rgb: 141, 16, 14;
+}

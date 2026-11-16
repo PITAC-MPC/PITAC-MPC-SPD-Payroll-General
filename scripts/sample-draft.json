@@ -1,0 +1,54 @@
+{
+  "meta": {
+    "company": "Pitac Multipurpose Cooperative",
+    "address": "San Victores St., Brgy. 9, Malaybalay City",
+    "division": "Special Project Division",
+    "periodLabel": "Payroll for the Month of",
+    "period": "September 16-30, 2026"
+  },
+  "columns": { "basicPay": true, "rice": true, "chicken": true, "cashAdvance": true },
+  "employees": [
+    {
+      "id": "a",
+      "name": "Balaquit, Vernel L.",
+      "basicPay": "7000",
+      "rice": "600",
+      "chicken": "",
+      "cashAdvance": "1500",
+      "netPayTotalOverride": "6500"
+    },
+    {
+      "id": "b",
+      "name": "Balad, Marvin",
+      "basicPay": "7000",
+      "rice": "100",
+      "chicken": "",
+      "cashAdvance": "1300",
+      "netPayTotalOverride": ""
+    },
+    {
+      "id": "c",
+      "name": "Flor, Marie Lou",
+      "basicPay": "7000",
+      "rice": "500",
+      "chicken": "",
+      "cashAdvance": "1100",
+      "netPayTotalOverride": ""
+    },
+    {
+      "id": "d",
+      "name": "Marquez, Jericho",
+      "basicPay": "5650",
+      "rice": "500",
+      "chicken": "300",
+      "cashAdvance": "800",
+      "netPayTotalOverride": ""
+    }
+  ],
+  "signatories": [
+    { "id": "s0", "role": "Prepared by", "name": "Joeffrey M. Serdan", "title": "Logistic Manager" },
+    { "id": "s1", "role": "Certified Correct by", "name": "Joel T. Rivera", "title": "SP-Division Head" },
+    { "id": "s2", "role": "Approved by", "name": "Ricky R. Chamen", "title": "COO" },
+    { "id": "s3", "role": "Paid by", "name": "Marietes G. Achacuo", "title": "Finance Manager" }
+  ]
+}

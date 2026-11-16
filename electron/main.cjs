@@ -1,0 +1,190 @@
+const { app, BrowserWindow, Menu, dialog, ipcMain } = require('electron');
+const fs = require('node:fs/promises');
+const path = require('node:path');
+
+const devServerUrl = process.env.VITE_DEV_SERVER_URL;
+const appId = 'com.spd.payroll.general';
+const settingsFileName = 'settings.json';
+
+let mainWindow = null;
+
+app.setAppUserModelId(appId);
+
+const hasSingleInstanceLock = app.requestSingleInstanceLock();
+
+if (!hasSingleInstanceLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (!mainWindow) return;
+
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+  });
+
+  app.whenReady().then(() => {
+    Menu.setApplicationMenu(null);
+    createWindow();
+
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    });
+  });
+}
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') app.quit();
+});
+
+function createWindow() {
+  mainWindow = new BrowserWindow({
+    width: 1360,
+    height: 900,
+    minWidth: 1024,
+    minHeight: 700,
+    show: false,
+    autoHideMenuBar: true,
+    title: 'PITAC Payroll General',
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.cjs'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+      spellcheck: false,
+    },
+  });
+
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
+  });
+
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
+
+  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+
+  mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
+    if (devServerUrl && navigationUrl.startsWith(devServerUrl)) return;
+    if (!devServerUrl && navigationUrl.startsWith('file://')) return;
+
+    event.preventDefault();
+  });
+
+  if (devServerUrl) {
+    mainWindow.loadURL(devServerUrl);
+  } else {
+    mainWindow.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
+  }
+}
+
+function settingsFilePath() {
+  return path.join(app.getPath('userData'), settingsFileName);
+}
+
+async function readLastSaveDir() {
+  try {
+    const raw = await fs.readFile(settingsFilePath(), 'utf8');
+    const lastSaveDir = JSON.parse(raw)?.lastSaveDir;
+
+    if (typeof lastSaveDir !== 'string' || !lastSaveDir) return null;
+
+    const stats = await fs.stat(lastSaveDir);
+    return stats.isDirectory() ? lastSaveDir : null;
+  } catch {
+    return null;
+  }
+}
+
+async function saveLastSaveDir(dir) {
+  try {
+    await fs.mkdir(app.getPath('userData'), { recursive: true });
+    await fs.writeFile(
+      settingsFilePath(),
+      JSON.stringify({ lastSaveDir: dir }, null, 2),
+    );
+  } catch {
+    // Remembering the folder is best effort only.
+  }
+}
+
+function sanitizePdfFileName(value) {
+  const baseName = path
+    .basename(String(value || 'Payroll.pdf'))
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const safeName = baseName || 'Payroll.pdf';
+  return safeName.toLowerCase().endsWith('.pdf') ? safeName : `${safeName}.pdf`;
+}
+
+ipcMain.handle('payroll:save-pdf', async (event, suggestedName) => {
+  const window = BrowserWindow.fromWebContents(event.sender);
+
+  if (!window) {
+    return { success: false, error: 'The payroll window is unavailable.' };
+  }
+
+  const lastSaveDir = await readLastSaveDir();
+  const defaultDir = lastSaveDir ?? app.getPath('desktop');
+
+  const { canceled, filePath } = await dialog.showSaveDialog(window, {
+    title: 'Save payroll as PDF',
+    defaultPath: path.join(defaultDir, sanitizePdfFileName(suggestedName)),
+    filters: [{ name: 'PDF document', extensions: ['pdf'] }],
+  });
+
+  if (canceled || !filePath) {
+    return { canceled: true };
+  }
+
+  const pdfFilePath = filePath.toLowerCase().endsWith('.pdf')
+    ? filePath
+    : `${filePath}.pdf`;
+
+  try {
+    const pdf = await window.webContents.printToPDF({
+      printBackground: false,
+      pageSize: 'A4',
+      landscape: true,
+      preferCSSPageSize: true,
+    });
+
+    await fs.writeFile(pdfFilePath, pdf);
+    await saveLastSaveDir(path.dirname(pdfFilePath));
+
+    return { success: true, filePath: pdfFilePath };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : 'Unable to create the PDF.',
+    };
+  }
+});
+
+ipcMain.handle('payroll:print', async (event) => {
+  const window = BrowserWindow.fromWebContents(event.sender);
+
+  if (!window) {
+    return {
+      success: false,
+      failureReason: 'The payroll window is unavailable.',
+    };
+  }
+
+  return new Promise((resolve) => {
+    window.webContents.print(
+      {
+        printBackground: false,
+        pageSize: 'A4',
+        landscape: true,
+        preferCSSPageSize: true,
+      },
+      (success, failureReason) => {
+        resolve({ success, failureReason });
+      },
+    );
+  });
+});
