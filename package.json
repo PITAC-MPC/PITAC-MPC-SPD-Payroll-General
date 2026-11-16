@@ -26,7 +26,6 @@
   },
   "build": {
     "appId": "com.spd.payroll.general",
-    "productName": "SPD Payroll General",
     "directories": {
       "output": "release"
     },
