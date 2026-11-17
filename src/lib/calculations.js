@@ -1,39 +1,36 @@
-import { DEDUCTION_KEYS } from './columns';
 import { round2, toNumber } from './format';
 
 /**
- * Returns the deduction keys that are active for the current column setup.
+ * Adds up the amounts of one employee's deduction entries.
  */
-export function activeDeductions(visibility = {}) {
-  return DEDUCTION_KEYS.filter((key) => visibility[key] !== false);
+export function sumDeductions(deductions = []) {
+  if (!Array.isArray(deductions)) return 0;
+
+  return round2(
+    deductions.reduce((total, item) => total + toNumber(item?.amount), 0),
+  );
 }
 
 /**
  * Computes the money values of a single employee row.
  *
- * Net Pay       = Basic Pay - (Deduction + Cash Advance)
+ * Net Pay       = Basic Pay - the sum of the row's deduction entries
  * Net Pay Total = Net Pay, unless the user overrides the row value
  *                 (for example to add a previous period's net pay)
  */
 export function computeRow(row, visibility = {}) {
   const basicPay = round2(row?.basicPay);
-  const deduction = round2(row?.deduction);
-  const cashAdvance = round2(row?.cashAdvance);
+  const deductionValue =
+    visibility.deduction === false ? 0 : sumDeductions(row?.deductions);
 
-  const deductions = activeDeductions(visibility).reduce(
-    (total, key) => total + toNumber(row?.[key]),
-    0,
-  );
-
-  const netPay = round2(basicPay - deductions);
+  const netPay = round2(basicPay - deductionValue);
   const override = String(row?.netPayTotalOverride ?? '').trim();
   const netPayTotal = override ? round2(override) : netPay;
 
   return {
     ...row,
     basicPayValue: basicPay,
-    deductionValue: deduction,
-    cashAdvanceValue: cashAdvance,
+    deductionValue,
     netPay,
     netPayTotal,
     hasOverride: Boolean(override),
@@ -47,7 +44,6 @@ export function computeTotals(rows = [], visibility = {}) {
   const totals = {
     basicPay: 0,
     deduction: 0,
-    cashAdvance: 0,
     netPay: 0,
     netPayTotal: 0,
     count: 0,
@@ -58,8 +54,6 @@ export function computeTotals(rows = [], visibility = {}) {
 
     if (visibility.basicPay !== false) totals.basicPay += row.basicPayValue;
     if (visibility.deduction !== false) totals.deduction += row.deductionValue;
-    if (visibility.cashAdvance !== false)
-      totals.cashAdvance += row.cashAdvanceValue;
 
     totals.netPay += row.netPay;
     totals.netPayTotal += row.netPayTotal;
@@ -67,7 +61,6 @@ export function computeTotals(rows = [], visibility = {}) {
 
   totals.basicPay = round2(totals.basicPay);
   totals.deduction = round2(totals.deduction);
-  totals.cashAdvance = round2(totals.cashAdvance);
   totals.netPay = round2(totals.netPay);
   totals.netPayTotal = round2(totals.netPayTotal);
 
@@ -90,7 +83,10 @@ export function computePayroll(state) {
 }
 
 /**
- * True when a row carries any printable content.
+ * True when a row carries any printable content. A deduction reason on its
+ * own does not count: the default rows already carry the usual reasons
+ * (*Rice*, *Chicken*, *Cash Advance*) with no amount, and those must not
+ * print as blank employees.
  */
 export function hasEmployeeContent(row) {
   if (!row) return false;
@@ -98,9 +94,7 @@ export function hasEmployeeContent(row) {
   return Boolean(
     String(row.name ?? '').trim() ||
     toNumber(row.basicPay) > 0 ||
-    toNumber(row.deduction) > 0 ||
-    toNumber(row.cashAdvance) > 0 ||
-    String(row.deductionReason ?? '').trim() ||
+    sumDeductions(row.deductions) > 0 ||
     String(row.netPayTotalOverride ?? '').trim(),
   );
 }

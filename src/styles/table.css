@@ -33,8 +33,8 @@
   padding: 0.35rem 0.45rem;
   color: var(--payslip-ink);
   border-color: #eef2f6;
-  /* Top-align so every money input shares one line: the Deduction amount
-     lines up with Basic Pay and Cash Advance, and its reason sits below. */
+  /* Top-align so the money inputs share one line and the deduction list
+     starts at the top of its cell. */
   vertical-align: top;
 }
 
@@ -47,20 +47,20 @@
 }
 
 .col-name {
-  width: 24%;
+  width: 22%;
 }
 
 .col-money {
-  width: 11%;
+  width: 13%;
 }
 
-/* The deduction cell holds the amount and its reason, so it gets more room. */
+/* The deduction cell holds a list of entries, so it gets the most room. */
 .col-deduction {
-  width: 14%;
+  width: 26%;
 }
 
 .col-signature {
-  width: 12%;
+  width: 10%;
 }
 
 .col-action {
@@ -107,7 +107,11 @@
   text-align: right;
 }
 
-/* Deduction = one amount plus a short reason, stacked in the same cell. */
+/* Deduction = a list of (reason, amount) entries with a line total. */
+
+.td-deduction {
+  text-align: left;
+}
 
 .deduction-cell {
   display: flex;
@@ -115,24 +119,106 @@
   gap: 0.3rem;
 }
 
-.deduction-cell .table-input {
+.deduction-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.deduction-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 5.2rem 1.5rem;
+  gap: 0.3rem;
+  align-items: center;
+}
+
+.deduction-line .table-input {
   width: 100%;
 }
 
+.deduction-reason-input,
+.deduction-amount-input {
+  padding-top: 0.18rem;
+  padding-bottom: 0.18rem;
+  font-size: 0.78rem;
+}
+
 .deduction-reason-input {
-  padding-top: 0.15rem;
-  padding-bottom: 0.15rem;
-  color: var(--payslip-muted);
+  color: var(--payslip-ink);
   background: transparent;
   border: 1px dashed var(--payslip-line-strong);
   border-radius: 0.35rem;
-  font-size: 0.72rem;
-  text-align: left;
 }
 
 .deduction-reason-input:focus {
-  color: var(--payslip-ink);
   background: #fff;
+}
+
+.deduction-amount-input {
+  text-align: left;
+}
+
+.deduction-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  color: #94a3b8;
+  background: transparent;
+  border: 0;
+  border-radius: 0.35rem;
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+.deduction-remove:hover,
+.deduction-remove:focus {
+  color: var(--payslip-danger);
+  background: #fff1f1;
+}
+
+.deduction-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+  border-top: 1px dashed var(--payslip-line-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.deduction-total-label {
+  color: var(--payslip-muted);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.deduction-total-value {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.deduction-add {
+  align-self: flex-start;
+  padding: 0.2rem 0.45rem;
+  color: var(--payslip-accent);
+  background: transparent;
+  border: 1px dashed var(--payslip-line-strong);
+  border-radius: 0.35rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.deduction-add:hover,
+.deduction-add:focus {
+  background: #fff;
+  border-color: var(--payslip-accent);
 }
 
 .signature-cell {

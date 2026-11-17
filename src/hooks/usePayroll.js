@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { sanitizeDecimalString, sanitizeText, todayISO } from '../lib/format';
+import { sanitizeDecimalString, sanitizeText, toNumber } from '../lib/format';
 
 const STORAGE_KEY = 'pitac-payroll-general-draft-v1';
 
@@ -14,7 +14,6 @@ export const DEFAULT_META = {
 export const DEFAULT_COLUMNS = {
   basicPay: true,
   deduction: true,
-  cashAdvance: true,
 };
 
 export const DEFAULT_SIGNATORIES = [
@@ -40,6 +39,9 @@ export const DEFAULT_SIGNATORIES = [
   },
 ];
 
+/** Reasons a new employee's deduction block starts with. */
+const DEFAULT_DEDUCTION_REASONS = ['Rice', 'Chicken', 'Cash Advance'];
+
 function makeId() {
   if (
     typeof crypto !== 'undefined' &&
@@ -51,14 +53,22 @@ function makeId() {
   return `row-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
+export function createDeduction(reason = '', amount = '') {
+  return {
+    id: makeId(),
+    reason: sanitizeText(reason, 120),
+    amount: sanitizeDecimalString(amount),
+  };
+}
+
 export function createEmployee() {
   return {
     id: makeId(),
     name: '',
     basicPay: '',
-    deduction: '',
-    deductionReason: '',
-    cashAdvance: '',
+    deductions: DEFAULT_DEDUCTION_REASONS.map((reason) =>
+      createDeduction(reason),
+    ),
     netPayTotalOverride: '',
   };
 }
@@ -75,17 +85,51 @@ export function createEmptyState() {
   };
 }
 
+function normalizeDeduction(item) {
+  return {
+    id: typeof item?.id === 'string' && item.id ? item.id : makeId(),
+    reason: sanitizeText(item?.reason ?? '', 120),
+    amount: sanitizeDecimalString(item?.amount ?? ''),
+  };
+}
+
+/**
+ * Turns a draft saved before the deduction list existed (one amount + one
+ * reason + a separate cash advance) into deduction entries, so an old draft
+ * opens with its figures intact.
+ */
+function legacyDeductions(row) {
+  const items = [];
+
+  if (
+    String(row?.deductionReason ?? '').trim() ||
+    toNumber(row?.deduction) > 0
+  ) {
+    items.push(
+      createDeduction(
+        row?.deductionReason || 'Deduction',
+        row?.deduction ?? '',
+      ),
+    );
+  }
+
+  if (toNumber(row?.cashAdvance) > 0) {
+    items.push(createDeduction('Cash Advance', row?.cashAdvance));
+  }
+
+  return items;
+}
+
 function normalizeEmployee(row) {
-  // Drafts saved before the Rice/Chicken -> Deduction change keep their names,
-  // basic pay and cash advance, but the old rice/chicken amounts are dropped
-  // on purpose: the Deduction column starts blank.
+  const deductions = Array.isArray(row?.deductions)
+    ? row.deductions.map(normalizeDeduction)
+    : legacyDeductions(row);
+
   return {
     id: typeof row?.id === 'string' && row.id ? row.id : makeId(),
     name: sanitizeText(row?.name, 80),
     basicPay: sanitizeDecimalString(row?.basicPay ?? ''),
-    deduction: sanitizeDecimalString(row?.deduction ?? ''),
-    deductionReason: sanitizeText(row?.deductionReason ?? '', 120),
-    cashAdvance: sanitizeDecimalString(row?.cashAdvance ?? ''),
+    deductions,
     netPayTotalOverride: sanitizeDecimalString(row?.netPayTotalOverride ?? ''),
   };
 }
@@ -96,7 +140,6 @@ function normalizeColumns(columns) {
   return {
     basicPay: source.basicPay !== false,
     deduction: source.deduction !== false,
-    cashAdvance: source.cashAdvance !== false,
   };
 }
 
@@ -189,6 +232,8 @@ export default function usePayroll() {
   };
 
   const updateEmployee = (id, field, value) => {
+    if (!['name', 'basicPay', 'netPayTotalOverride'].includes(field)) return;
+
     setState((current) => ({
       ...current,
       employees: current.employees.map((row) => {
@@ -196,17 +241,6 @@ export default function usePayroll() {
 
         if (field === 'name') {
           return { ...row, name: sanitizeText(value, 80) };
-        }
-
-        if (field === 'deductionReason') {
-          return { ...row, deductionReason: sanitizeText(value, 120) };
-        }
-
-        if (field === 'netPayTotalOverride') {
-          return {
-            ...row,
-            netPayTotalOverride: sanitizeDecimalString(value ?? ''),
-          };
         }
 
         return { ...row, [field]: sanitizeDecimalString(value ?? '') };
@@ -226,6 +260,46 @@ export default function usePayroll() {
       ...current,
       employees: current.employees.filter((row) => row.id !== id),
     }));
+  };
+
+  const updateEmployeeDeductions = (employeeId, update) => {
+    setState((current) => ({
+      ...current,
+      employees: current.employees.map((row) =>
+        row.id === employeeId ? { ...row, deductions: update(row) } : row,
+      ),
+    }));
+  };
+
+  const addDeduction = (employeeId) => {
+    updateEmployeeDeductions(employeeId, (row) => [
+      ...row.deductions,
+      createDeduction(),
+    ]);
+  };
+
+  const updateDeduction = (employeeId, deductionId, field, value) => {
+    if (!['reason', 'amount'].includes(field)) return;
+
+    updateEmployeeDeductions(employeeId, (row) =>
+      row.deductions.map((item) => {
+        if (item.id !== deductionId) return item;
+
+        return {
+          ...item,
+          [field]:
+            field === 'reason'
+              ? sanitizeText(value, 120)
+              : sanitizeDecimalString(value ?? ''),
+        };
+      }),
+    );
+  };
+
+  const removeDeduction = (employeeId, deductionId) => {
+    updateEmployeeDeductions(employeeId, (row) =>
+      row.deductions.filter((item) => item.id !== deductionId),
+    );
   };
 
   const updateSignatory = (id, field, value) => {
@@ -256,6 +330,9 @@ export default function usePayroll() {
     updateEmployee,
     addEmployee,
     removeEmployee,
+    addDeduction,
+    updateDeduction,
+    removeDeduction,
     updateSignatory,
     reset,
   };

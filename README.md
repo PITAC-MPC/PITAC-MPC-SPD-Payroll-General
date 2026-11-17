@@ -35,21 +35,23 @@ Everything is on one screen.
 
 1. **The sheet** is the working surface:
 
-   - the **header** holds the company name, the address, the division and the line `PAYROLL FOR THE MONTH OF …` — the pay period is typed there (for example *September 16-30, 2026*);
+   - the **header** holds the company name, the address, the division and the line `PAYROLL FOR THE MONTH OF …` — the pay period is typed there (for example _September 16-30, 2026_);
 
-   - every employee gets a **row**: type the name in *Name of Employee*, then the amounts in *Basic Pay*, *Deduction* and *Cash Advance*, plus a short reason for the deduction (e.g. `Rice 25kg`);
+   - every employee gets a **row**: type the name in _Name of Employee_ and the amount in _Basic Pay_; the **Deduction** cell holds that employee's own list of entries — type a reason (for example `Rice`, `Chicken`, `CA`) and an amount on each line, use **Add new deduction** for another entry, and the `×` on a line removes it;
 
-   - **Net Pay** is worked out for you — basic pay minus the deductions — and the **Net Pay Total** column is filled in with the same figure, ready to be changed when a payroll covers only part of a month;
+   - each Deduction cell shows the employee's **Total** underneath their entries;
+
+   - **Net Pay** is worked out for you — basic pay minus that employee's deduction total — and the **Net Pay Total** column is filled in with the same figure, ready to be changed when a payroll covers only part of a month;
 
    - the **Signature** column is left empty — it is there for the wet signature on paper;
 
    - the **TOTAL** row sums every column for you;
 
-   - the four **signatory blocks** at the bottom (*Prepared by*, *Certified Correct by*, *Approved by*, *Paid by*) are typed on the sheet and printed with the names and positions;
+   - the four **signatory blocks** at the bottom (_Prepared by_, _Certified Correct by_, _Approved by_, _Paid by_) are typed on the sheet and printed with the names and positions;
 
 2. **Add Employee** (top bar) adds another row; the `×` on a row takes that employee off the sheet.
 
-3. **Columns** (top bar) switches the optional money columns on and off — *Basic Pay*, *Deduction* and *Cash Advance* — so the sheet can be trimmed to a form that has fewer columns. *Net Pay*, *Net Pay Total* and *Signature* are always printed.
+3. **Columns** (top bar) switches the optional money columns on and off — _Basic Pay_ and _Deduction_ — so the sheet can be trimmed to a form that has fewer columns. _Net Pay_, _Net Pay Total_ and _Signature_ are always printed.
 
 4. **New Payroll** (top bar) clears everything written on the sheet and gives a blank one.
 
@@ -62,8 +64,8 @@ Only the sheet you are filling in is kept between sessions — the draft comes b
 - Single machine, one window at a time (single-instance lock).
 - Data lives in the Electron profile (`localStorage`); no export/backup yet.
 - The signature column is blank on paper — sign the printed sheet by hand.
-- The print layout is large-type on purpose, so a page holds **about 6 employees when the Deduction cells have a reason and about 9 when they are empty**. Longer sheets spill onto a second page and the column headers repeat there.
-- Old drafts saved before the Deduction change open with their names, basic pay and cash advance kept, but the old Rice and Chicken amounts are cleared — type the new Deduction amount and its reason once.
+- The print layout is large-type on purpose, so a page holds **about four employees when each Deduction cell lists three entries**, and more when the lists are shorter. Longer sheets spill onto a second page and the column headers repeat there.
+- Old drafts saved before the deduction list opened with one deduction amount plus a reason and a separate cash advance. They now open with those figures carried into the employee's deduction list — no retyping needed.
 - The pay period is free text — type it exactly as it should be printed, e.g. `September 16-30, 2026`.
 
 ## Project layout
@@ -93,6 +95,7 @@ src/components/
   payroll/PayrollHeader.jsx    company, division and pay period
   payroll/EmployeesSection.jsx the grid and its headings
   payroll/EmployeeRow.jsx      one employee
+  payroll/DeductionCell.jsx    one employee's deduction list, total and add button
   payroll/TotalRow.jsx         the TOTAL row
   payroll/SignaturesSection.jsx  Prepared by / Certified Correct by / Approved by / Paid by
 src/print/PrintPayroll.jsx     the hidden A4 landscape print copy
@@ -114,7 +117,7 @@ One thing is written to disk — the draft of the sheet you are filling in:
 
 - `meta` — company name, address, division and the pay period;
 - `columns` — which optional money columns are visible;
-- `employees` — one entry per row: name, basic pay, deduction, deduction reason, cash advance and the net pay total override;
+- `employees` — one entry per row: name, basic pay, a list of deduction entries (reason + amount) and the net pay total override;
 - `signatories` — the four blocks: role, name and position.
 
 It is saved in the Electron profile's `localStorage` under `pitac-payroll-general-draft-v1`, a fraction of a second after every change. **New Payroll** deletes it and starts a blank sheet.

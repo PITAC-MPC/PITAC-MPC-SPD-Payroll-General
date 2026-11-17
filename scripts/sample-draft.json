@@ -6,49 +6,75 @@
     "periodLabel": "Payroll for the Month of",
     "period": "September 16-30, 2026"
   },
-  "columns": { "basicPay": true, "deduction": true, "cashAdvance": true },
+  "columns": { "basicPay": true, "deduction": true },
   "employees": [
     {
       "id": "a",
       "name": "Balaquit, Vernel L.",
       "basicPay": "7000",
-      "deduction": "600",
-      "deductionReason": "Rice 25kg",
-      "cashAdvance": "1500",
-      "netPayTotalOverride": "6500"
+      "deductions": [
+        { "id": "a1", "reason": "Rice", "amount": "500" },
+        { "id": "a2", "reason": "Chicken", "amount": "200" },
+        { "id": "a3", "reason": "CA", "amount": "300" }
+      ],
+      "netPayTotalOverride": ""
     },
     {
       "id": "b",
       "name": "Balad, Marvin",
       "basicPay": "7000",
-      "deduction": "100",
-      "deductionReason": "Rice 4kg",
-      "cashAdvance": "1300",
+      "deductions": [
+        { "id": "b1", "reason": "Rice", "amount": "100" },
+        { "id": "b2", "reason": "CA", "amount": "1300" }
+      ],
       "netPayTotalOverride": ""
     },
     {
       "id": "c",
       "name": "Flor, Marie Lou",
       "basicPay": "7000",
-      "deduction": "500",
-      "deductionReason": "Rice 20kg",
-      "cashAdvance": "1100",
+      "deductions": [
+        { "id": "c1", "reason": "Rice", "amount": "500" },
+        { "id": "c2", "reason": "CA", "amount": "1100" }
+      ],
       "netPayTotalOverride": ""
     },
     {
       "id": "d",
       "name": "Marquez, Jericho",
       "basicPay": "5650",
-      "deduction": "800",
-      "deductionReason": "Rice 20kg, Chicken 2kg",
-      "cashAdvance": "800",
+      "deductions": [
+        { "id": "d1", "reason": "Rice", "amount": "800" },
+        { "id": "d2", "reason": "Chicken", "amount": "400" },
+        { "id": "d3", "reason": "CA", "amount": "800" }
+      ],
       "netPayTotalOverride": ""
     }
   ],
   "signatories": [
-    { "id": "s0", "role": "Prepared by", "name": "Joeffrey M. Serdan", "title": "Logistic Manager" },
-    { "id": "s1", "role": "Certified Correct by", "name": "Joel T. Rivera", "title": "SP-Division Head" },
-    { "id": "s2", "role": "Approved by", "name": "Ricky R. Chamen", "title": "COO" },
-    { "id": "s3", "role": "Paid by", "name": "Marietes G. Achacuo", "title": "Finance Manager" }
+    {
+      "id": "s0",
+      "role": "Prepared by",
+      "name": "Joeffrey M. Serdan",
+      "title": "Logistic Manager"
+    },
+    {
+      "id": "s1",
+      "role": "Certified Correct by",
+      "name": "Joel T. Rivera",
+      "title": "SP-Division Head"
+    },
+    {
+      "id": "s2",
+      "role": "Approved by",
+      "name": "Ricky R. Chamen",
+      "title": "COO"
+    },
+    {
+      "id": "s3",
+      "role": "Paid by",
+      "name": "Marietes G. Achacoso",
+      "title": "Finance Manager"
+    }
   ]
 }

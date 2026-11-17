@@ -106,18 +106,40 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Deduction: the amount on top, the short reason underneath. */
+/* Deduction: one (reason, amount) line per entry, then the line total. */
 
-.print-deduction-amount {
-  font-weight: 600;
+.print-table tbody td.print-deduction-cell {
+  vertical-align: top;
 }
 
-.print-deduction-reason {
-  margin-top: 1.5pt;
+.print-deduction {
+  display: flex;
+  flex-direction: column;
+  gap: 1pt;
+}
+
+.print-deduction-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20mm;
+  column-gap: 2mm;
   font-size: 9pt;
   font-weight: 600;
   line-height: 1.2;
+}
+
+.print-deduction-reason {
   overflow-wrap: break-word;
+}
+
+.print-deduction-amount {
+  font-variant-numeric: tabular-nums;
+}
+
+.print-deduction-subtotal {
+  margin-top: 1.5pt;
+  padding-top: 1.5pt;
+  border-top: 0.75pt solid #000;
+  font-weight: 800;
 }
 
 .print-signature {

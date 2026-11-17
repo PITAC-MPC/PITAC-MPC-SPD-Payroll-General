@@ -1,13 +1,11 @@
 import { hasEmployeeContent } from '../lib/calculations';
-import { formatNumber } from '../lib/format';
+import { formatNumber, toNumber } from '../lib/format';
 
 function cellValue(column, row) {
   const { key } = column;
 
   if (key === 'name') return row.name;
   if (key === 'basicPay') return formatNumber(row.basicPayValue);
-  if (key === 'cashAdvance')
-    return row.cashAdvanceValue ? formatNumber(row.cashAdvanceValue) : '';
   if (key === 'netPay') return formatNumber(row.netPay);
   if (key === 'netPayTotal') return formatNumber(row.netPayTotal);
 
@@ -15,17 +13,30 @@ function cellValue(column, row) {
 }
 
 /**
- * The Deduction column prints its amount with the short reason underneath.
+ * The Deduction column prints the employee's entries as a small
+ * (reason, amount) list with that employee's deduction total underneath.
  */
 function deductionCell(row) {
+  const items = (row.deductions ?? []).filter(
+    (item) => toNumber(item?.amount) > 0,
+  );
+
+  if (items.length === 0) return null;
+
   return (
     <div className="print-deduction">
-      <div className="print-deduction-amount">
-        {row.deductionValue ? formatNumber(row.deductionValue) : ''}
+      {items.map((item) => (
+        <div className="print-deduction-line" key={item.id}>
+          <span className="print-deduction-reason">{item.reason}</span>
+          <span className="print-deduction-amount">
+            {formatNumber(item.amount)}
+          </span>
+        </div>
+      ))}
+      <div className="print-deduction-line print-deduction-subtotal">
+        <span>Total</span>
+        <span>{formatNumber(row.deductionValue)}</span>
       </div>
-      {row.deductionReason ? (
-        <div className="print-deduction-reason">{row.deductionReason}</div>
-      ) : null}
     </div>
   );
 }
@@ -35,6 +46,13 @@ function renderCell(column, row) {
   if (column.key === 'deduction') return deductionCell(row);
 
   return cellValue(column, row);
+}
+
+function cellClass(column) {
+  if (column.key === 'name') return 'print-name';
+  if (column.key === 'signature') return 'print-signature';
+  if (column.key === 'deduction') return 'print-num print-deduction-cell';
+  return 'print-num';
 }
 
 /**
@@ -85,17 +103,8 @@ export default function PrintPayroll({
           {employees.map((row) => (
             <tr key={row.id}>
               {columns.map((column) => (
-                <td
-                  key={column.key}
-                  className={
-                    column.key === 'name'
-                      ? 'print-name'
-                      : column.key === 'signature'
-                        ? 'print-signature'
-                        : 'print-num'
-                  }
-                >
-                  {column.key === 'signature' ? '' : renderCell(column, row)}
+                <td key={column.key} className={cellClass(column)}>
+                  {renderCell(column, row)}
                 </td>
               ))}
             </tr>

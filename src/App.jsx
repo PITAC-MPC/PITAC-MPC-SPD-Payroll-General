@@ -20,6 +20,9 @@ export default function App() {
     updateEmployee,
     addEmployee,
     removeEmployee,
+    addDeduction,
+    updateDeduction,
+    removeDeduction,
     updateSignatory,
     reset,
   } = usePayroll();
@@ -165,6 +168,9 @@ export default function App() {
               onUpdate={updateEmployee}
               onAdd={addEmployee}
               onRemove={removeEmployee}
+              onAddDeduction={addDeduction}
+              onUpdateDeduction={updateDeduction}
+              onRemoveDeduction={removeDeduction}
             />
 
             <SignaturesSection

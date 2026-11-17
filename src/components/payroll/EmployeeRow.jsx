@@ -1,6 +1,7 @@
 import { formatNumber } from '../../lib/format';
 import NumericInput from '../ui/NumericInput';
 import TextInput from '../ui/TextInput';
+import DeductionCell from './DeductionCell';
 
 function renderCell(column, row, index, colIndex, onUpdate) {
   const { key } = column;
@@ -15,28 +16,6 @@ function renderCell(column, row, index, colIndex, onUpdate) {
         data-grid-col={colIndex}
         onChange={(value) => onUpdate(row.id, 'name', value)}
       />
-    );
-  }
-
-  if (key === 'deduction') {
-    return (
-      <div className="deduction-cell">
-        <NumericInput
-          value={row.deduction}
-          placeholder="0.00"
-          ariaLabel={`Deduction row ${index + 1}`}
-          data-grid-row={index}
-          data-grid-col={colIndex}
-          onChange={(value) => onUpdate(row.id, 'deduction', value)}
-        />
-        <TextInput
-          value={row.deductionReason}
-          placeholder="Reason (e.g. rice 25kg)"
-          className="deduction-reason-input"
-          ariaLabel={`Deduction reason row ${index + 1}`}
-          onChange={(value) => onUpdate(row.id, 'deductionReason', value)}
-        />
-      </div>
     );
   }
 
@@ -86,21 +65,40 @@ export default function EmployeeRow({
   columns,
   colIndexes,
   onUpdate,
+  onAddDeduction,
+  onUpdateDeduction,
+  onRemoveDeduction,
   onRemove,
 }) {
   return (
     <tr>
-      {columns.map((column) => (
-        <td key={column.key} className={column.key === 'name' ? '' : 'td-num'}>
-          {renderCell(
-            column,
-            row,
-            index,
-            colIndexes[column.key] ?? 0,
-            onUpdate,
-          )}
-        </td>
-      ))}
+      {columns.map((column) => {
+        const colIndex = colIndexes[column.key] ?? 0;
+
+        if (column.key === 'deduction') {
+          return (
+            <td key={column.key} className="td-deduction">
+              <DeductionCell
+                row={row}
+                index={index}
+                gridCol={colIndex}
+                onAdd={onAddDeduction}
+                onUpdate={onUpdateDeduction}
+                onRemove={onRemoveDeduction}
+              />
+            </td>
+          );
+        }
+
+        return (
+          <td
+            key={column.key}
+            className={column.key === 'name' ? '' : 'td-num'}
+          >
+            {renderCell(column, row, index, colIndex, onUpdate)}
+          </td>
+        );
+      })}
       <td className="row-action no-print">
         <button
           type="button"

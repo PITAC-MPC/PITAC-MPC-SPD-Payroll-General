@@ -27,6 +27,11 @@ function colClass(key) {
   return 'col-money';
 }
 
+function headerClass(key) {
+  if (key === 'name' || key === 'deduction') return '';
+  return 'th-num';
+}
+
 /**
  * The editable payroll grid with its totals row.
  */
@@ -37,6 +42,9 @@ export default function EmployeesSection({
   onUpdate,
   onAdd,
   onRemove,
+  onAddDeduction,
+  onUpdateDeduction,
+  onRemoveDeduction,
 }) {
   const colIndexes = buildColIndexes(columns);
 
@@ -45,7 +53,7 @@ export default function EmployeesSection({
       <SectionHeading
         eyebrow="Employees"
         title="Payroll Details"
-        description="Net pay is computed automatically. Net pay total accepts an override value."
+        description="Each employee has a deduction list with its own total. Net pay and the grand totals are computed automatically."
         action={
           <button
             type="button"
@@ -72,7 +80,7 @@ export default function EmployeesSection({
                   <th
                     key={column.key}
                     scope="col"
-                    className={column.key === 'name' ? '' : 'th-num'}
+                    className={headerClass(column.key)}
                   >
                     {column.label}
                   </th>
@@ -92,6 +100,9 @@ export default function EmployeesSection({
                   colIndexes={colIndexes}
                   onUpdate={onUpdate}
                   onRemove={onRemove}
+                  onAddDeduction={onAddDeduction}
+                  onUpdateDeduction={onUpdateDeduction}
+                  onRemoveDeduction={onRemoveDeduction}
                 />
               ))}
             </tbody>

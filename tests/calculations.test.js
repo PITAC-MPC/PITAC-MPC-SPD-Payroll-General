@@ -4,6 +4,7 @@ import {
   computeRow,
   computeTotals,
   hasEmployeeContent,
+  sumDeductions,
 } from '../src/lib/calculations';
 import {
   buildPdfFileName,
@@ -16,40 +17,57 @@ import {
 const allColumns = {
   basicPay: true,
   deduction: true,
-  cashAdvance: true,
 };
+
+function deduction(reason, amount) {
+  return { id: `${reason}-${amount}`, reason, amount };
+}
 
 function row(overrides = {}) {
   return {
     id: 'r1',
     name: '',
     basicPay: '',
-    deduction: '',
-    deductionReason: '',
-    cashAdvance: '',
+    deductions: [],
     netPayTotalOverride: '',
     ...overrides,
   };
 }
 
-describe('computeRow', () => {
-  it('computes net pay from basic pay minus deductions', () => {
-    const result = computeRow(
-      row({ basicPay: '7000', deduction: '600', cashAdvance: '1500' }),
-      allColumns,
-    );
-
-    expect(result.netPay).toBe(4900);
+describe('sumDeductions', () => {
+  it('adds the amounts of every entry', () => {
+    expect(
+      sumDeductions([
+        deduction('Rice', '500'),
+        deduction('Chicken', '200'),
+        deduction('Cash Advance', '300'),
+      ]),
+    ).toBe(1000);
   });
 
-  it('keeps the deduction reason with the computed row', () => {
+  it('treats blank amounts as zero and an empty list as zero', () => {
+    expect(sumDeductions([deduction('Rice', '')])).toBe(0);
+    expect(sumDeductions([])).toBe(0);
+    expect(sumDeductions(undefined)).toBe(0);
+  });
+});
+
+describe('computeRow', () => {
+  it('computes net pay from basic pay minus every deduction entry', () => {
     const result = computeRow(
-      row({ basicPay: '7000', deduction: '600', deductionReason: 'Rice 25kg' }),
+      row({
+        basicPay: '7000',
+        deductions: [
+          deduction('Rice', '500'),
+          deduction('Chicken', '200'),
+          deduction('Cash Advance', '300'),
+        ],
+      }),
       allColumns,
     );
 
-    expect(result.deductionValue).toBe(600);
-    expect(result.deductionReason).toBe('Rice 25kg');
+    expect(result.deductionValue).toBe(1000);
+    expect(result.netPay).toBe(6000);
   });
 
   it('treats blank inputs as zero', () => {
@@ -58,27 +76,27 @@ describe('computeRow', () => {
     expect(result.netPay).toBe(5000);
   });
 
-  it('ignores hidden deduction columns', () => {
+  it('ignores the deduction column when it is hidden', () => {
     const result = computeRow(
-      row({ basicPay: '7000', deduction: '600', cashAdvance: '1500' }),
+      row({ basicPay: '7000', deductions: [deduction('Rice', '600')] }),
       { ...allColumns, deduction: false },
     );
 
-    expect(result.netPay).toBe(5500);
+    expect(result.deductionValue).toBe(0);
+    expect(result.netPay).toBe(7000);
   });
 
   it('uses the net pay total override when provided', () => {
     const result = computeRow(
       row({
         basicPay: '7000',
-        deduction: '600',
-        cashAdvance: '1500',
+        deductions: [deduction('Rice', '600')],
         netPayTotalOverride: '6500',
       }),
       allColumns,
     );
 
-    expect(result.netPay).toBe(4900);
+    expect(result.netPay).toBe(6400);
     expect(result.netPayTotal).toBe(6500);
     expect(result.hasOverride).toBe(true);
   });
@@ -92,7 +110,7 @@ describe('computeRow', () => {
 
   it('rounds to two decimals', () => {
     const result = computeRow(
-      row({ basicPay: '1000.55', deduction: '0.10' }),
+      row({ basicPay: '1000.55', deductions: [deduction('Rice', '0.10')] }),
       allColumns,
     );
 
@@ -107,13 +125,12 @@ describe('computeTotals', () => {
         row({
           id: 'a',
           basicPay: '7000',
-          deduction: '600',
-          cashAdvance: '1500',
+          deductions: [deduction('Rice', '600')],
         }),
         allColumns,
       ),
       computeRow(
-        row({ id: 'b', basicPay: '5000', deduction: '0', cashAdvance: '0' }),
+        row({ id: 'b', basicPay: '5000', deductions: [] }),
         allColumns,
       ),
     ];
@@ -122,15 +139,17 @@ describe('computeTotals', () => {
 
     expect(totals.basicPay).toBe(12000);
     expect(totals.deduction).toBe(600);
-    expect(totals.cashAdvance).toBe(1500);
-    expect(totals.netPay).toBe(9900);
-    expect(totals.netPayTotal).toBe(9900);
+    expect(totals.netPay).toBe(11400);
+    expect(totals.netPayTotal).toBe(11400);
     expect(totals.count).toBe(2);
   });
 
   it('skips totals for hidden columns', () => {
     const rows = [
-      computeRow(row({ basicPay: '7000', deduction: '600' }), allColumns),
+      computeRow(
+        row({ basicPay: '7000', deductions: [deduction('Rice', '600')] }),
+        allColumns,
+      ),
     ];
 
     const totals = computeTotals(rows, { ...allColumns, deduction: false });
@@ -161,15 +180,20 @@ describe('computePayroll', () => {
 });
 
 describe('hasEmployeeContent', () => {
-  it('detects rows with any content', () => {
+  it('detects rows with any printable content', () => {
     expect(hasEmployeeContent(row({ name: 'Balaquit' }))).toBe(true);
     expect(hasEmployeeContent(row({ basicPay: '7000' }))).toBe(true);
-    expect(hasEmployeeContent(row({ deduction: '600' }))).toBe(true);
-    expect(hasEmployeeContent(row({ deductionReason: 'Rice 25kg' }))).toBe(
-      true,
-    );
+    expect(
+      hasEmployeeContent(row({ deductions: [deduction('Rice', '600')] })),
+    ).toBe(true);
     expect(hasEmployeeContent(row({ netPayTotalOverride: '100' }))).toBe(true);
     expect(hasEmployeeContent(row())).toBe(false);
+  });
+
+  it('ignores a reason that has no amount', () => {
+    expect(
+      hasEmployeeContent(row({ deductions: [deduction('Rice', '')] })),
+    ).toBe(false);
   });
 });
 

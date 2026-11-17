@@ -24,11 +24,14 @@ describe('App', () => {
     expect(text).toContain('Name of Employee');
     expect(text).toContain('Basic Pay');
     expect(text).toContain('Deduction');
-    expect(text).toContain('Cash Advance');
+    expect(text).toContain('Add new deduction');
     expect(text).toContain('Net Pay');
     expect(text).toContain('Net Pay Total');
     expect(text).toContain('Prepared by');
     expect(text).toContain('Joeffrey M. Serdan');
+    expect(container.querySelectorAll('.deduction-line').length).toBeGreaterThan(
+      0,
+    );
 
     root.unmount();
     container.remove();
@@ -40,6 +43,28 @@ describe('App', () => {
     expect(container.querySelector('.print-document')).not.toBeNull();
     expect(container.querySelector('.print-table')).not.toBeNull();
     expect(container.querySelectorAll('.print-signatory')).toHaveLength(4);
+
+    root.unmount();
+    container.remove();
+  });
+
+  it('adds and removes deduction entries on a row', async () => {
+    const { container, root } = await renderApp();
+    const firstRow = () => container.querySelectorAll('tbody tr')[0];
+    const lineCount = () => firstRow().querySelectorAll('.deduction-line').length;
+    const initial = lineCount();
+
+    await act(async () => {
+      firstRow().querySelector('.deduction-add').click();
+    });
+
+    expect(lineCount()).toBe(initial + 1);
+
+    await act(async () => {
+      firstRow().querySelector('.deduction-remove').click();
+    });
+
+    expect(lineCount()).toBe(initial);
 
     root.unmount();
     container.remove();
