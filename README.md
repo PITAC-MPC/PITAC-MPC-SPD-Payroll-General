@@ -6,7 +6,7 @@ The screen shows the actual paper — the same header, table, totals row and sig
 
 ## Download
 
-[![Download PITAC Payroll General v0.1.0](https://img.shields.io/badge/%E2%AC%93%20Download-PITAC%20Payroll%20General%20v0.1.0-8d100e?style=for-the-badge&logo=github)](https://github.com/PITAC-MPC/PITAC-MPC-SPD-Payroll-General/releases/latest)
+[![Download PITAC Payroll General v0.2.0](https://img.shields.io/badge/%E2%AC%93%20Download-PITAC%20Payroll%20General%20v0.2.0-8d100e?style=for-the-badge&logo=github)](https://github.com/PITAC-MPC/PITAC-MPC-SPD-Payroll-General/releases/latest)
 
 1. Click the button above and download the **Setup** file.
 
@@ -37,7 +37,7 @@ Everything is on one screen.
 
    - the **header** holds the company name, the address, the division and the line `PAYROLL FOR THE MONTH OF …` — the pay period is typed there (for example *September 16-30, 2026*);
 
-   - every employee gets a **row**: type the name in *Name of Employee*, then the amounts in *Basic Pay*, *Rice*, *Chicken* and *Cash Advance*;
+   - every employee gets a **row**: type the name in *Name of Employee*, then the amounts in *Basic Pay*, *Deduction* and *Cash Advance*, plus a short reason for the deduction (e.g. `Rice 25kg`);
 
    - **Net Pay** is worked out for you — basic pay minus the deductions — and the **Net Pay Total** column is filled in with the same figure, ready to be changed when a payroll covers only part of a month;
 
@@ -49,11 +49,11 @@ Everything is on one screen.
 
 2. **Add Employee** (top bar) adds another row; the `×` on a row takes that employee off the sheet.
 
-3. **Columns** (top bar) switches the optional money columns on and off — *Basic Pay*, *Rice*, *Chicken* and *Cash Advance* — so the sheet can be trimmed to a form that has fewer columns. *Net Pay*, *Net Pay Total* and *Signature* are always printed.
+3. **Columns** (top bar) switches the optional money columns on and off — *Basic Pay*, *Deduction* and *Cash Advance* — so the sheet can be trimmed to a form that has fewer columns. *Net Pay*, *Net Pay Total* and *Signature* are always printed.
 
 4. **New Payroll** (top bar) clears everything written on the sheet and gives a blank one.
 
-5. **Print** sends the sheet to the printer; **Save as PDF** writes a PDF file instead. Paper size is fixed to A4 landscape and the sheet prints as one page.
+5. **Print** sends the sheet to the printer; **Save as PDF** writes a PDF file instead. Paper size is fixed to A4 landscape and the sheet prints as one page. The printed sheet uses **large, heavy black type and solid black rules** so it stays readable for older readers — do not lighten it with grey text or hairline borders.
 
 Only the sheet you are filling in is kept between sessions — the draft comes back the next time the app is opened. **New Payroll** clears it.
 
@@ -62,7 +62,8 @@ Only the sheet you are filling in is kept between sessions — the draft comes b
 - Single machine, one window at a time (single-instance lock).
 - Data lives in the Electron profile (`localStorage`); no export/backup yet.
 - The signature column is blank on paper — sign the printed sheet by hand.
-- The layout is tuned for a sheet of about a dozen employees. More rows may spill to a second page (the column headers repeat on it).
+- The print layout is large-type on purpose, so a page holds **about 6 employees when the Deduction cells have a reason and about 9 when they are empty**. Longer sheets spill onto a second page and the column headers repeat there.
+- Old drafts saved before the Deduction change open with their names, basic pay and cash advance kept, but the old Rice and Chicken amounts are cleared — type the new Deduction amount and its reason once.
 - The pay period is free text — type it exactly as it should be printed, e.g. `September 16-30, 2026`.
 
 ## Project layout
@@ -105,7 +106,7 @@ src/styles/                    screen styling, split into four files
 npm run dist       # builds the app and the Windows installer in release/
 ```
 
-The installer is written to `release/PITAC.Payroll.General.Setup.0.1.0.exe`.
+The installer is written to `release/PITAC.Payroll.General.Setup.0.2.0.exe`.
 
 ## Data model
 
@@ -113,7 +114,7 @@ One thing is written to disk — the draft of the sheet you are filling in:
 
 - `meta` — company name, address, division and the pay period;
 - `columns` — which optional money columns are visible;
-- `employees` — one entry per row: name, basic pay, rice, chicken, cash advance and the net pay total override;
+- `employees` — one entry per row: name, basic pay, deduction, deduction reason, cash advance and the net pay total override;
 - `signatories` — the four blocks: role, name and position.
 
 It is saved in the Electron profile's `localStorage` under `pitac-payroll-general-draft-v1`, a fraction of a second after every change. **New Payroll** deletes it and starts a blank sheet.

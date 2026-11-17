@@ -18,6 +18,28 @@ function renderCell(column, row, index, colIndex, onUpdate) {
     );
   }
 
+  if (key === 'deduction') {
+    return (
+      <div className="deduction-cell">
+        <NumericInput
+          value={row.deduction}
+          placeholder="0.00"
+          ariaLabel={`Deduction row ${index + 1}`}
+          data-grid-row={index}
+          data-grid-col={colIndex}
+          onChange={(value) => onUpdate(row.id, 'deduction', value)}
+        />
+        <TextInput
+          value={row.deductionReason}
+          placeholder="Reason (e.g. rice 25kg)"
+          className="deduction-reason-input"
+          ariaLabel={`Deduction reason row ${index + 1}`}
+          onChange={(value) => onUpdate(row.id, 'deductionReason', value)}
+        />
+      </div>
+    );
+  }
+
   if (key === 'netPay') {
     return (
       <div className="amount-cell cell-readonly">

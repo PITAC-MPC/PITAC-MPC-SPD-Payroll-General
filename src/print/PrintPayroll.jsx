@@ -6,15 +6,35 @@ function cellValue(column, row) {
 
   if (key === 'name') return row.name;
   if (key === 'basicPay') return formatNumber(row.basicPayValue);
-  if (key === 'rice') return row.riceValue ? formatNumber(row.riceValue) : '';
-  if (key === 'chicken')
-    return row.chickenValue ? formatNumber(row.chickenValue) : '';
   if (key === 'cashAdvance')
     return row.cashAdvanceValue ? formatNumber(row.cashAdvanceValue) : '';
   if (key === 'netPay') return formatNumber(row.netPay);
   if (key === 'netPayTotal') return formatNumber(row.netPayTotal);
 
   return '';
+}
+
+/**
+ * The Deduction column prints its amount with the short reason underneath.
+ */
+function deductionCell(row) {
+  return (
+    <div className="print-deduction">
+      <div className="print-deduction-amount">
+        {row.deductionValue ? formatNumber(row.deductionValue) : ''}
+      </div>
+      {row.deductionReason ? (
+        <div className="print-deduction-reason">{row.deductionReason}</div>
+      ) : null}
+    </div>
+  );
+}
+
+function renderCell(column, row) {
+  if (column.key === 'signature') return '';
+  if (column.key === 'deduction') return deductionCell(row);
+
+  return cellValue(column, row);
 }
 
 /**
@@ -75,7 +95,7 @@ export default function PrintPayroll({
                         : 'print-num'
                   }
                 >
-                  {column.key === 'signature' ? '' : cellValue(column, row)}
+                  {column.key === 'signature' ? '' : renderCell(column, row)}
                 </td>
               ))}
             </tr>

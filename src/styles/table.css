@@ -33,7 +33,9 @@
   padding: 0.35rem 0.45rem;
   color: var(--payslip-ink);
   border-color: #eef2f6;
-  vertical-align: middle;
+  /* Top-align so every money input shares one line: the Deduction amount
+     lines up with Basic Pay and Cash Advance, and its reason sits below. */
+  vertical-align: top;
 }
 
 .payslip-table tbody tr:last-child td {
@@ -50,6 +52,11 @@
 
 .col-money {
   width: 11%;
+}
+
+/* The deduction cell holds the amount and its reason, so it gets more room. */
+.col-deduction {
+  width: 14%;
 }
 
 .col-signature {
@@ -98,6 +105,34 @@
   border-radius: 0.45rem;
   background: #fff;
   text-align: right;
+}
+
+/* Deduction = one amount plus a short reason, stacked in the same cell. */
+
+.deduction-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.deduction-cell .table-input {
+  width: 100%;
+}
+
+.deduction-reason-input {
+  padding-top: 0.15rem;
+  padding-bottom: 0.15rem;
+  color: var(--payslip-muted);
+  background: transparent;
+  border: 1px dashed var(--payslip-line-strong);
+  border-radius: 0.35rem;
+  font-size: 0.72rem;
+  text-align: left;
+}
+
+.deduction-reason-input:focus {
+  color: var(--payslip-ink);
+  background: #fff;
 }
 
 .signature-cell {

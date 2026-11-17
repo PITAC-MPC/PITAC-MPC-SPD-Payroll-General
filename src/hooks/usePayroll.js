@@ -13,8 +13,7 @@ export const DEFAULT_META = {
 
 export const DEFAULT_COLUMNS = {
   basicPay: true,
-  rice: true,
-  chicken: true,
+  deduction: true,
   cashAdvance: true,
 };
 
@@ -57,8 +56,8 @@ export function createEmployee() {
     id: makeId(),
     name: '',
     basicPay: '',
-    rice: '',
-    chicken: '',
+    deduction: '',
+    deductionReason: '',
     cashAdvance: '',
     netPayTotalOverride: '',
   };
@@ -77,12 +76,15 @@ export function createEmptyState() {
 }
 
 function normalizeEmployee(row) {
+  // Drafts saved before the Rice/Chicken -> Deduction change keep their names,
+  // basic pay and cash advance, but the old rice/chicken amounts are dropped
+  // on purpose: the Deduction column starts blank.
   return {
     id: typeof row?.id === 'string' && row.id ? row.id : makeId(),
     name: sanitizeText(row?.name, 80),
     basicPay: sanitizeDecimalString(row?.basicPay ?? ''),
-    rice: sanitizeDecimalString(row?.rice ?? ''),
-    chicken: sanitizeDecimalString(row?.chicken ?? ''),
+    deduction: sanitizeDecimalString(row?.deduction ?? ''),
+    deductionReason: sanitizeText(row?.deductionReason ?? '', 120),
     cashAdvance: sanitizeDecimalString(row?.cashAdvance ?? ''),
     netPayTotalOverride: sanitizeDecimalString(row?.netPayTotalOverride ?? ''),
   };
@@ -93,8 +95,7 @@ function normalizeColumns(columns) {
 
   return {
     basicPay: source.basicPay !== false,
-    rice: source.rice !== false,
-    chicken: source.chicken !== false,
+    deduction: source.deduction !== false,
     cashAdvance: source.cashAdvance !== false,
   };
 }
@@ -195,6 +196,10 @@ export default function usePayroll() {
 
         if (field === 'name') {
           return { ...row, name: sanitizeText(value, 80) };
+        }
+
+        if (field === 'deductionReason') {
+          return { ...row, deductionReason: sanitizeText(value, 120) };
         }
 
         if (field === 'netPayTotalOverride') {

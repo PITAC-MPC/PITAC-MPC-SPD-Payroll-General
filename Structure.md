@@ -141,7 +141,7 @@ Think of this as the app's "model layer". It holds:
 
 - **The header** — company name, address, division and the pay period (`DEFAULT_META`).
 - **The columns** — which optional money columns are visible (`DEFAULT_COLUMNS`).
-- **The employees** — one row each: name, basic pay, rice, chicken, cash advance and the net pay total override.
+- **The employees** — one row each: name, basic pay, deduction (a single amount plus a short reason), cash advance and the net pay total override.
 - **The signatories** — the four blocks with their roles, names and positions (`DEFAULT_SIGNATORIES`).
 - **Saving and loading** — the draft is written to `localStorage` under the key
   `pitac-payroll-general-draft-v1`, a fraction of a second after every change.
@@ -231,16 +231,36 @@ The screen styles are split into four small files, each with one job:
 
 - The page is **A4 landscape with 12mm margins**, so the usable box is
   273mm × 186mm.
+- The printed sheet is deliberately **bigger and darker than a normal form**
+  because it is read by people in their senior years: body text is 11.5pt in
+  weight 600, headers 9.5pt in weight 800, and every rule is **solid black**.
+  Never switch the print styles back to pale grey text, light grey separators
+  or hairline borders — cheap printers drop them out, and older eyes need the
+  contrast.
 - The table is `width: 100%` with `table-layout: fixed`. The column widths are
   written in **millimetres** in `src/lib/columns.js` and add up to exactly
-  273mm — name 62, basic pay 28, rice 22, chicken 24, cash advance 34,
-  net pay 30, net pay total 32, signature 41.
+  273mm — name 62, basic pay 30, deduction 42, cash advance 32,
+  net pay 31, net pay total 35, signature 41. Keep that sum at 273mm or the
+  table will overflow the page; widen a money column by taking the space from
+  the name column, which has the most slack.
+- The **Deduction** column is the old Rice and Chicken columns folded into one.
+  A row prints the amount, and underneath it the short free-text reason
+  (`.print-deduction-reason`, 9pt). That second line is why it is the widest
+  money column (42mm) and why a row with a reason is a little taller.
+- Row padding is **5pt**, not 7pt, because the big type made each row tall: at
+  7pt only 5 employees fitted on one page. 5pt keeps a full page at **6 rows
+  with reasons (181.6mm) or 9 rows without (183.4mm)** of the 186mm printable
+  height. Check the total height before growing the type, padding or footer
+  gap again.
 - `thead { display: table-header-group }` makes the column headers print again
   on a second page, and `break-inside: avoid` keeps a row and the signature
   band from being split in half.
 - The header labels use `letter-spacing`, which also pushes the last letter of a
-  label away from the edge. `text-indent: -0.06em` cancels that, so a header
+  label away from the edge. `text-indent: -0.05em` cancels that, so a header
   sits exactly above its figures.
+- The money columns are wide enough for the enlarged, bold header labels
+  (*Cash Advance*, *Net Pay Total*) to stay on one line. If a label ever wraps,
+  widen its column rather than shrinking the font.
 
 ---
 

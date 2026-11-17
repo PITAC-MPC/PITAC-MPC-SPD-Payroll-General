@@ -15,8 +15,7 @@ import {
 
 const allColumns = {
   basicPay: true,
-  rice: true,
-  chicken: true,
+  deduction: true,
   cashAdvance: true,
 };
 
@@ -25,8 +24,8 @@ function row(overrides = {}) {
     id: 'r1',
     name: '',
     basicPay: '',
-    rice: '',
-    chicken: '',
+    deduction: '',
+    deductionReason: '',
     cashAdvance: '',
     netPayTotalOverride: '',
     ...overrides,
@@ -36,11 +35,21 @@ function row(overrides = {}) {
 describe('computeRow', () => {
   it('computes net pay from basic pay minus deductions', () => {
     const result = computeRow(
-      row({ basicPay: '7000', rice: '600', chicken: '0', cashAdvance: '1500' }),
+      row({ basicPay: '7000', deduction: '600', cashAdvance: '1500' }),
       allColumns,
     );
 
     expect(result.netPay).toBe(4900);
+  });
+
+  it('keeps the deduction reason with the computed row', () => {
+    const result = computeRow(
+      row({ basicPay: '7000', deduction: '600', deductionReason: 'Rice 25kg' }),
+      allColumns,
+    );
+
+    expect(result.deductionValue).toBe(600);
+    expect(result.deductionReason).toBe('Rice 25kg');
   });
 
   it('treats blank inputs as zero', () => {
@@ -51,8 +60,8 @@ describe('computeRow', () => {
 
   it('ignores hidden deduction columns', () => {
     const result = computeRow(
-      row({ basicPay: '7000', rice: '600', cashAdvance: '1500' }),
-      { ...allColumns, rice: false },
+      row({ basicPay: '7000', deduction: '600', cashAdvance: '1500' }),
+      { ...allColumns, deduction: false },
     );
 
     expect(result.netPay).toBe(5500);
@@ -62,7 +71,7 @@ describe('computeRow', () => {
     const result = computeRow(
       row({
         basicPay: '7000',
-        rice: '600',
+        deduction: '600',
         cashAdvance: '1500',
         netPayTotalOverride: '6500',
       }),
@@ -83,7 +92,7 @@ describe('computeRow', () => {
 
   it('rounds to two decimals', () => {
     const result = computeRow(
-      row({ basicPay: '1000.55', rice: '0.10' }),
+      row({ basicPay: '1000.55', deduction: '0.10' }),
       allColumns,
     );
 
@@ -95,11 +104,16 @@ describe('computeTotals', () => {
   it('sums every visible column', () => {
     const rows = [
       computeRow(
-        row({ id: 'a', basicPay: '7000', rice: '600', cashAdvance: '1500' }),
+        row({
+          id: 'a',
+          basicPay: '7000',
+          deduction: '600',
+          cashAdvance: '1500',
+        }),
         allColumns,
       ),
       computeRow(
-        row({ id: 'b', basicPay: '5000', rice: '0', cashAdvance: '0' }),
+        row({ id: 'b', basicPay: '5000', deduction: '0', cashAdvance: '0' }),
         allColumns,
       ),
     ];
@@ -107,7 +121,7 @@ describe('computeTotals', () => {
     const totals = computeTotals(rows, allColumns);
 
     expect(totals.basicPay).toBe(12000);
-    expect(totals.rice).toBe(600);
+    expect(totals.deduction).toBe(600);
     expect(totals.cashAdvance).toBe(1500);
     expect(totals.netPay).toBe(9900);
     expect(totals.netPayTotal).toBe(9900);
@@ -116,12 +130,12 @@ describe('computeTotals', () => {
 
   it('skips totals for hidden columns', () => {
     const rows = [
-      computeRow(row({ basicPay: '7000', rice: '600' }), allColumns),
+      computeRow(row({ basicPay: '7000', deduction: '600' }), allColumns),
     ];
 
-    const totals = computeTotals(rows, { ...allColumns, rice: false });
+    const totals = computeTotals(rows, { ...allColumns, deduction: false });
 
-    expect(totals.rice).toBe(0);
+    expect(totals.deduction).toBe(0);
     expect(totals.basicPay).toBe(7000);
   });
 });
@@ -150,6 +164,10 @@ describe('hasEmployeeContent', () => {
   it('detects rows with any content', () => {
     expect(hasEmployeeContent(row({ name: 'Balaquit' }))).toBe(true);
     expect(hasEmployeeContent(row({ basicPay: '7000' }))).toBe(true);
+    expect(hasEmployeeContent(row({ deduction: '600' }))).toBe(true);
+    expect(hasEmployeeContent(row({ deductionReason: 'Rice 25kg' }))).toBe(
+      true,
+    );
     expect(hasEmployeeContent(row({ netPayTotalOverride: '100' }))).toBe(true);
     expect(hasEmployeeContent(row())).toBe(false);
   });

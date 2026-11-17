@@ -23,6 +23,7 @@ describe('App', () => {
 
     expect(text).toContain('Name of Employee');
     expect(text).toContain('Basic Pay');
+    expect(text).toContain('Deduction');
     expect(text).toContain('Cash Advance');
     expect(text).toContain('Net Pay');
     expect(text).toContain('Net Pay Total');

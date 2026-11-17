@@ -11,14 +11,13 @@ export function activeDeductions(visibility = {}) {
 /**
  * Computes the money values of a single employee row.
  *
- * Net Pay       = Basic Pay - (Rice + Chicken + Cash Advance)
+ * Net Pay       = Basic Pay - (Deduction + Cash Advance)
  * Net Pay Total = Net Pay, unless the user overrides the row value
- *                 (for example to add a previous period's net pay).
+ *                 (for example to add a previous period's net pay)
  */
 export function computeRow(row, visibility = {}) {
   const basicPay = round2(row?.basicPay);
-  const rice = round2(row?.rice);
-  const chicken = round2(row?.chicken);
+  const deduction = round2(row?.deduction);
   const cashAdvance = round2(row?.cashAdvance);
 
   const deductions = activeDeductions(visibility).reduce(
@@ -33,8 +32,7 @@ export function computeRow(row, visibility = {}) {
   return {
     ...row,
     basicPayValue: basicPay,
-    riceValue: rice,
-    chickenValue: chicken,
+    deductionValue: deduction,
     cashAdvanceValue: cashAdvance,
     netPay,
     netPayTotal,
@@ -48,8 +46,7 @@ export function computeRow(row, visibility = {}) {
 export function computeTotals(rows = [], visibility = {}) {
   const totals = {
     basicPay: 0,
-    rice: 0,
-    chicken: 0,
+    deduction: 0,
     cashAdvance: 0,
     netPay: 0,
     netPayTotal: 0,
@@ -60,8 +57,7 @@ export function computeTotals(rows = [], visibility = {}) {
     totals.count += 1;
 
     if (visibility.basicPay !== false) totals.basicPay += row.basicPayValue;
-    if (visibility.rice !== false) totals.rice += row.riceValue;
-    if (visibility.chicken !== false) totals.chicken += row.chickenValue;
+    if (visibility.deduction !== false) totals.deduction += row.deductionValue;
     if (visibility.cashAdvance !== false)
       totals.cashAdvance += row.cashAdvanceValue;
 
@@ -70,8 +66,7 @@ export function computeTotals(rows = [], visibility = {}) {
   });
 
   totals.basicPay = round2(totals.basicPay);
-  totals.rice = round2(totals.rice);
-  totals.chicken = round2(totals.chicken);
+  totals.deduction = round2(totals.deduction);
   totals.cashAdvance = round2(totals.cashAdvance);
   totals.netPay = round2(totals.netPay);
   totals.netPayTotal = round2(totals.netPayTotal);
@@ -103,9 +98,9 @@ export function hasEmployeeContent(row) {
   return Boolean(
     String(row.name ?? '').trim() ||
     toNumber(row.basicPay) > 0 ||
-    toNumber(row.rice) > 0 ||
-    toNumber(row.chicken) > 0 ||
+    toNumber(row.deduction) > 0 ||
     toNumber(row.cashAdvance) > 0 ||
+    String(row.deductionReason ?? '').trim() ||
     String(row.netPayTotalOverride ?? '').trim(),
   );
 }

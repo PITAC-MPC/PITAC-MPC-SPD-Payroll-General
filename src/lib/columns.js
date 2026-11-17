@@ -1,30 +1,37 @@
+/**
+ * Print widths are in millimetres and must add up to the printable width of
+ * A4 landscape with 12mm margins (297mm - 24mm = 273mm):
+ *
+ *   name 62 + basic pay 30 + deduction 42 + cash advance 32
+ *       + net pay 31 + net pay total 35 + signature 41 = 273mm
+ *
+ * `Deduction` replaced the old Rice and Chicken columns. It holds one amount
+ * plus a short free-text reason, which prints underneath the amount, so it
+ * gets the widest money column.
+ *
+ * The money columns are wide enough for the large, bold header labels used
+ * in `src/print/print.css` to sit on one line.
+ */
 export const MONEY_COLUMNS = [
   {
     key: 'basicPay',
     label: 'Basic Pay',
     shortLabel: 'Basic Pay',
-    printWidth: '28mm',
+    printWidth: '30mm',
     toggleable: true,
   },
   {
-    key: 'rice',
-    label: 'Rice',
-    shortLabel: 'Rice',
-    printWidth: '22mm',
-    toggleable: true,
-  },
-  {
-    key: 'chicken',
-    label: 'Chicken',
-    shortLabel: 'Chicken',
-    printWidth: '24mm',
+    key: 'deduction',
+    label: 'Deduction',
+    shortLabel: 'Deduction',
+    printWidth: '42mm',
     toggleable: true,
   },
   {
     key: 'cashAdvance',
     label: 'Cash Advance',
     shortLabel: 'Cash Advance',
-    printWidth: '34mm',
+    printWidth: '32mm',
     toggleable: true,
   },
 ];
@@ -33,7 +40,7 @@ export const NET_PAY_COLUMN = {
   key: 'netPay',
   label: 'Net Pay',
   shortLabel: 'Net Pay',
-  printWidth: '30mm',
+  printWidth: '31mm',
   toggleable: false,
 };
 
@@ -41,7 +48,7 @@ export const NET_PAY_TOTAL_COLUMN = {
   key: 'netPayTotal',
   label: 'Net Pay Total',
   shortLabel: 'Net Pay Total',
-  printWidth: '32mm',
+  printWidth: '35mm',
   toggleable: false,
 };
 
@@ -80,4 +87,4 @@ export function buildVisibleColumns(visibility = {}) {
   ];
 }
 
-export const DEDUCTION_KEYS = ['rice', 'chicken', 'cashAdvance'];
+export const DEDUCTION_KEYS = ['deduction', 'cashAdvance'];

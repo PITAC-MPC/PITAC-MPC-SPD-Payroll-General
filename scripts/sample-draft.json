@@ -6,14 +6,14 @@
     "periodLabel": "Payroll for the Month of",
     "period": "September 16-30, 2026"
   },
-  "columns": { "basicPay": true, "rice": true, "chicken": true, "cashAdvance": true },
+  "columns": { "basicPay": true, "deduction": true, "cashAdvance": true },
   "employees": [
     {
       "id": "a",
       "name": "Balaquit, Vernel L.",
       "basicPay": "7000",
-      "rice": "600",
-      "chicken": "",
+      "deduction": "600",
+      "deductionReason": "Rice 25kg",
       "cashAdvance": "1500",
       "netPayTotalOverride": "6500"
     },
@@ -21,8 +21,8 @@
       "id": "b",
       "name": "Balad, Marvin",
       "basicPay": "7000",
-      "rice": "100",
-      "chicken": "",
+      "deduction": "100",
+      "deductionReason": "Rice 4kg",
       "cashAdvance": "1300",
       "netPayTotalOverride": ""
     },
@@ -30,8 +30,8 @@
       "id": "c",
       "name": "Flor, Marie Lou",
       "basicPay": "7000",
-      "rice": "500",
-      "chicken": "",
+      "deduction": "500",
+      "deductionReason": "Rice 20kg",
       "cashAdvance": "1100",
       "netPayTotalOverride": ""
     },
@@ -39,8 +39,8 @@
       "id": "d",
       "name": "Marquez, Jericho",
       "basicPay": "5650",
-      "rice": "500",
-      "chicken": "300",
+      "deduction": "800",
+      "deductionReason": "Rice 20kg, Chicken 2kg",
       "cashAdvance": "800",
       "netPayTotalOverride": ""
     }

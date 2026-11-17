@@ -22,6 +22,7 @@ function buildColIndexes(columns) {
 
 function colClass(key) {
   if (key === 'name') return 'col-name';
+  if (key === 'deduction') return 'col-money col-deduction';
   if (key === 'signature') return 'col-signature';
   return 'col-money';
 }
