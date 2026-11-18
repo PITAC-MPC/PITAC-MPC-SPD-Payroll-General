@@ -27,19 +27,6 @@ function renderCell(column, row, index, colIndex, onUpdate) {
     );
   }
 
-  if (key === 'netPayTotal') {
-    return (
-      <NumericInput
-        value={row.netPayTotalOverride}
-        placeholder={formatNumber(row.netPay)}
-        ariaLabel={`Net pay total row ${index + 1}`}
-        data-grid-row={index}
-        data-grid-col={colIndex}
-        onChange={(value) => onUpdate(row.id, 'netPayTotalOverride', value)}
-      />
-    );
-  }
-
   if (key === 'signature') {
     return <div className="signature-cell" aria-hidden="true" />;
   }

@@ -12,8 +12,6 @@ function buildColIndexes(columns) {
     }
   });
 
-  focusable.push('netPayTotal');
-
   return focusable.reduce((accumulator, key, index) => {
     accumulator[key] = index;
     return accumulator;

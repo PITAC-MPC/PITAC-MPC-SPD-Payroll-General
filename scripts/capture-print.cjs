@@ -12,8 +12,8 @@ const outputPath = path.join(
 app.whenReady().then(async () => {
   const win = new BrowserWindow({
     show: false,
-    width: 1123,
-    height: 794,
+    width: 794,
+    height: 1123,
     webPreferences: { sandbox: true, contextIsolation: true },
   });
 
@@ -47,7 +47,7 @@ app.whenReady().then(async () => {
       const app = document.querySelector('.app-shell');
       if (app) app.style.display = 'none';
       const doc = document.querySelector('.print-document');
-      if (doc) doc.style.display = 'block';
+      if (doc) doc.style.display = 'flex';
       document.body.style.background = '#ffffff';
       document.body.style.padding = '12mm';
     }

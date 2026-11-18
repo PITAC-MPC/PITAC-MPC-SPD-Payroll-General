@@ -24,7 +24,7 @@ export default function ColumnsPanel({ open, visibility, onToggle, onClose }) {
           </label>
         ))}
         <p className="columns-panel-note">
-          Net pay, net pay total and signature are always printed.
+          Net pay and signature are always printed.
         </p>
       </div>
     </>

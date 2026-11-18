@@ -29,7 +29,6 @@ function row(overrides = {}) {
     name: '',
     basicPay: '',
     deductions: [],
-    netPayTotalOverride: '',
     ...overrides,
   };
 }
@@ -86,7 +85,7 @@ describe('computeRow', () => {
     expect(result.netPay).toBe(7000);
   });
 
-  it('uses the net pay total override when provided', () => {
+  it('ignores a stale net pay total override from an older draft', () => {
     const result = computeRow(
       row({
         basicPay: '7000',
@@ -97,15 +96,7 @@ describe('computeRow', () => {
     );
 
     expect(result.netPay).toBe(6400);
-    expect(result.netPayTotal).toBe(6500);
-    expect(result.hasOverride).toBe(true);
-  });
-
-  it('falls back to net pay when there is no override', () => {
-    const result = computeRow(row({ basicPay: '1000' }), allColumns);
-
-    expect(result.netPayTotal).toBe(1000);
-    expect(result.hasOverride).toBe(false);
+    expect(result.netPayTotal).toBeUndefined();
   });
 
   it('rounds to two decimals', () => {
@@ -140,7 +131,7 @@ describe('computeTotals', () => {
     expect(totals.basicPay).toBe(12000);
     expect(totals.deduction).toBe(600);
     expect(totals.netPay).toBe(11400);
-    expect(totals.netPayTotal).toBe(11400);
+    expect(totals.netPayTotal).toBeUndefined();
     expect(totals.count).toBe(2);
   });
 
@@ -186,7 +177,7 @@ describe('hasEmployeeContent', () => {
     expect(
       hasEmployeeContent(row({ deductions: [deduction('Rice', '600')] })),
     ).toBe(true);
-    expect(hasEmployeeContent(row({ netPayTotalOverride: '100' }))).toBe(true);
+    expect(hasEmployeeContent(row({ netPayTotalOverride: '100' }))).toBe(false);
     expect(hasEmployeeContent(row())).toBe(false);
   });
 

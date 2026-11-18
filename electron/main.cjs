@@ -147,7 +147,7 @@ ipcMain.handle('payroll:save-pdf', async (event, suggestedName) => {
     const pdf = await window.webContents.printToPDF({
       printBackground: false,
       pageSize: 'A4',
-      landscape: true,
+      landscape: false,
       preferCSSPageSize: true,
     });
 
@@ -179,7 +179,7 @@ ipcMain.handle('payroll:print', async (event) => {
       {
         printBackground: false,
         pageSize: 'A4',
-        landscape: true,
+        landscape: false,
         preferCSSPageSize: true,
       },
       (success, failureReason) => {

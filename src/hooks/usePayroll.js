@@ -69,7 +69,6 @@ export function createEmployee() {
     deductions: DEFAULT_DEDUCTION_REASONS.map((reason) =>
       createDeduction(reason),
     ),
-    netPayTotalOverride: '',
   };
 }
 
@@ -130,7 +129,6 @@ function normalizeEmployee(row) {
     name: sanitizeText(row?.name, 80),
     basicPay: sanitizeDecimalString(row?.basicPay ?? ''),
     deductions,
-    netPayTotalOverride: sanitizeDecimalString(row?.netPayTotalOverride ?? ''),
   };
 }
 
@@ -232,7 +230,7 @@ export default function usePayroll() {
   };
 
   const updateEmployee = (id, field, value) => {
-    if (!['name', 'basicPay', 'netPayTotalOverride'].includes(field)) return;
+    if (!['name', 'basicPay'].includes(field)) return;
 
     setState((current) => ({
       ...current,

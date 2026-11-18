@@ -46,7 +46,10 @@ export default function App() {
 
   const getRowCount = useCallback(() => rows.length, [rows.length]);
   const getColumnCount = useCallback(
-    () => columns.filter((column) => column.key !== 'netPay').length,
+    () =>
+      columns.filter(
+        (column) => column.key !== 'netPay' && column.key !== 'signature',
+      ).length,
     [columns],
   );
 

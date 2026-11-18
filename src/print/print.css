@@ -4,13 +4,20 @@
  * The printed sheet is read by people in their senior years, so everything
  * here is deliberately:
  *   - bigger   (fonts are ~25% larger than a normal form),
- *   - darker   (pure black ink, heavy weights, solid black rules).
+ *   - darker   (near-black ink, heavy weights, solid black rules).
  * Never rely on colour or grey shading for emphasis: a cheap laser or inkjet
  * drops pale grey lines on the floor.
  */
 
 .print-document {
   display: none;
+  flex-direction: column;
+  /*
+   * 297mm page - 2 x 12mm margins = 273mm of usable height. Keeping the
+   * document at least one full page tall lets `margin-top: auto` on the
+   * footer push the signatories to the bottom of the sheet.
+   */
+  min-height: 271mm;
   color: #000;
   font-family:
     'Segoe UI',
@@ -25,37 +32,36 @@
 
 .print-header {
   text-align: center;
-  padding-bottom: 5pt;
+  padding-bottom: 4pt;
 }
 
 .print-company {
-  color: #000;
-  font-size: 18pt;
-  font-weight: 800;
+  color: #111827;
+  font-size: 14pt;
+  font-weight: 700;
   letter-spacing: -0.01em;
   text-transform: uppercase;
 }
 
 .print-address {
-  color: #000;
-  font-size: 11pt;
-  font-weight: 600;
+  color: #374151;
+  font-size: 9pt;
 }
 
 .print-division {
-  margin-top: 3pt;
-  color: #000;
-  font-size: 12.5pt;
-  font-weight: 800;
+  margin-top: 2pt;
+  color: #111827;
+  font-size: 10pt;
+  font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .print-title {
-  margin-top: 12pt;
-  color: #000;
-  font-size: 14pt;
-  font-weight: 800;
+  margin-top: 10pt;
+  color: #111827;
+  font-size: 11pt;
+  font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -167,7 +173,8 @@
   display: flex;
   justify-content: space-between;
   gap: 10mm;
-  margin-top: 14mm;
+  margin-top: auto;
+  padding-top: 10mm;
   break-inside: avoid;
 }
 
@@ -178,34 +185,33 @@
 }
 
 .print-signatory-role {
-  color: #000;
-  font-size: 11pt;
-  font-weight: 700;
+  color: #111827;
+  font-size: 9pt;
+  font-weight: 600;
 }
 
 .print-signatory-line {
-  height: 13mm;
-  border-bottom: 1.25pt solid #000;
+  height: 12mm;
+  border-bottom: 0.75pt solid #111827;
 }
 
 .print-signatory-name {
-  margin-top: 3pt;
-  color: #000;
-  font-size: 11.5pt;
-  font-weight: 800;
+  margin-top: 2pt;
+  color: #111827;
+  font-size: 9pt;
+  font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .print-signatory-title {
-  color: #000;
-  font-size: 10pt;
-  font-weight: 600;
+  color: #4b5563;
+  font-size: 8.5pt;
 }
 
 @media print {
   @page {
-    size: A4 landscape;
+    size: A4 portrait;
     margin: 12mm;
   }
 
@@ -227,7 +233,7 @@
   }
 
   .print-document {
-    display: block !important;
+    display: flex !important;
     width: 100%;
   }
 

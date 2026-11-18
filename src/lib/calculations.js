@@ -14,26 +14,18 @@ export function sumDeductions(deductions = []) {
 /**
  * Computes the money values of a single employee row.
  *
- * Net Pay       = Basic Pay - the sum of the row's deduction entries
- * Net Pay Total = Net Pay, unless the user overrides the row value
- *                 (for example to add a previous period's net pay)
+ * Net Pay = Basic Pay - the sum of the row's deduction entries
  */
 export function computeRow(row, visibility = {}) {
   const basicPay = round2(row?.basicPay);
   const deductionValue =
     visibility.deduction === false ? 0 : sumDeductions(row?.deductions);
 
-  const netPay = round2(basicPay - deductionValue);
-  const override = String(row?.netPayTotalOverride ?? '').trim();
-  const netPayTotal = override ? round2(override) : netPay;
-
   return {
     ...row,
     basicPayValue: basicPay,
     deductionValue,
-    netPay,
-    netPayTotal,
-    hasOverride: Boolean(override),
+    netPay: round2(basicPay - deductionValue),
   };
 }
 
@@ -45,7 +37,6 @@ export function computeTotals(rows = [], visibility = {}) {
     basicPay: 0,
     deduction: 0,
     netPay: 0,
-    netPayTotal: 0,
     count: 0,
   };
 
@@ -56,13 +47,11 @@ export function computeTotals(rows = [], visibility = {}) {
     if (visibility.deduction !== false) totals.deduction += row.deductionValue;
 
     totals.netPay += row.netPay;
-    totals.netPayTotal += row.netPayTotal;
   });
 
   totals.basicPay = round2(totals.basicPay);
   totals.deduction = round2(totals.deduction);
   totals.netPay = round2(totals.netPay);
-  totals.netPayTotal = round2(totals.netPayTotal);
 
   return totals;
 }
@@ -94,7 +83,6 @@ export function hasEmployeeContent(row) {
   return Boolean(
     String(row.name ?? '').trim() ||
     toNumber(row.basicPay) > 0 ||
-    sumDeductions(row.deductions) > 0 ||
-    String(row.netPayTotalOverride ?? '').trim(),
+    sumDeductions(row.deductions) > 0,
   );
 }

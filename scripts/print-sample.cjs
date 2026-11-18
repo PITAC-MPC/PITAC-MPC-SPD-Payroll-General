@@ -29,7 +29,7 @@ app.whenReady().then(async () => {
   const pdf = await win.webContents.printToPDF({
     printBackground: false,
     pageSize: 'A4',
-    landscape: true,
+    landscape: false,
     preferCSSPageSize: true,
   });
 

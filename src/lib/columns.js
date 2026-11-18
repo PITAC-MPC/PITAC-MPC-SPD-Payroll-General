@@ -1,12 +1,14 @@
 /**
  * Print widths are in millimetres and must add up to the printable width of
- * A4 landscape with 12mm margins (297mm - 24mm = 273mm):
+ * A4 portrait with 12mm margins (210mm - 24mm = 186mm):
  *
- *   name 65 + basic pay 32 + deduction 68
- *       + net pay 34 + net pay total 38 + signature 36 = 273mm
+ *   name 38 + basic pay 22 + deduction 48
+ *       + net pay 50 + signature 28 = 186mm
  *
- * `Deduction` is the widest money column: each employee's cell holds a small
- * list of (reason, amount) entries plus that employee's deduction total.
+ * `Net Pay` takes the width of the old net pay + net pay total columns: it is
+ * the only net-pay column now, and its computed figure is never overridden.
+ * `Deduction` is the other wide money column: each employee's cell holds a
+ * small list of (reason, amount) entries plus that employee's deduction total.
  *
  * The money columns are wide enough for the large, bold header labels used
  * in `src/print/print.css` to sit on one line.
@@ -16,14 +18,14 @@ export const MONEY_COLUMNS = [
     key: 'basicPay',
     label: 'Basic Pay',
     shortLabel: 'Basic Pay',
-    printWidth: '32mm',
+    printWidth: '22mm',
     toggleable: true,
   },
   {
     key: 'deduction',
     label: 'Deduction',
     shortLabel: 'Deduction',
-    printWidth: '68mm',
+    printWidth: '48mm',
     toggleable: true,
   },
 ];
@@ -32,15 +34,7 @@ export const NET_PAY_COLUMN = {
   key: 'netPay',
   label: 'Net Pay',
   shortLabel: 'Net Pay',
-  printWidth: '34mm',
-  toggleable: false,
-};
-
-export const NET_PAY_TOTAL_COLUMN = {
-  key: 'netPayTotal',
-  label: 'Net Pay Total',
-  shortLabel: 'Net Pay Total',
-  printWidth: '38mm',
+  printWidth: '50mm',
   toggleable: false,
 };
 
@@ -48,7 +42,7 @@ export const SIGNATURE_COLUMN = {
   key: 'signature',
   label: 'Signature',
   shortLabel: 'Signature',
-  printWidth: '36mm',
+  printWidth: '28mm',
   toggleable: false,
 };
 
@@ -56,25 +50,19 @@ export const NAME_COLUMN = {
   key: 'name',
   label: 'Name of Employee',
   shortLabel: 'Name of Employee',
-  printWidth: '65mm',
+  printWidth: '38mm',
   toggleable: false,
 };
 
 /**
  * Builds the ordered list of visible columns for the payroll grid.
- * `Net Pay`, `Net Pay Total` and `Signature` are always present so the
- * printed sheet always matches the official payroll form.
+ * `Net Pay` and `Signature` are always present so the printed sheet always
+ * matches the official payroll form.
  */
 export function buildVisibleColumns(visibility = {}) {
   const money = MONEY_COLUMNS.filter(
     (column) => visibility[column.key] !== false,
   );
 
-  return [
-    NAME_COLUMN,
-    ...money,
-    NET_PAY_COLUMN,
-    NET_PAY_TOTAL_COLUMN,
-    SIGNATURE_COLUMN,
-  ];
+  return [NAME_COLUMN, ...money, NET_PAY_COLUMN, SIGNATURE_COLUMN];
 }

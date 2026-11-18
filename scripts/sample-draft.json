@@ -16,8 +16,7 @@
         { "id": "a1", "reason": "Rice", "amount": "500" },
         { "id": "a2", "reason": "Chicken", "amount": "200" },
         { "id": "a3", "reason": "CA", "amount": "300" }
-      ],
-      "netPayTotalOverride": ""
+      ]
     },
     {
       "id": "b",
@@ -26,8 +25,7 @@
       "deductions": [
         { "id": "b1", "reason": "Rice", "amount": "100" },
         { "id": "b2", "reason": "CA", "amount": "1300" }
-      ],
-      "netPayTotalOverride": ""
+      ]
     },
     {
       "id": "c",
@@ -36,8 +34,7 @@
       "deductions": [
         { "id": "c1", "reason": "Rice", "amount": "500" },
         { "id": "c2", "reason": "CA", "amount": "1100" }
-      ],
-      "netPayTotalOverride": ""
+      ]
     },
     {
       "id": "d",
@@ -47,8 +44,7 @@
         { "id": "d1", "reason": "Rice", "amount": "800" },
         { "id": "d2", "reason": "Chicken", "amount": "400" },
         { "id": "d3", "reason": "CA", "amount": "800" }
-      ],
-      "netPayTotalOverride": ""
+      ]
     }
   ],
   "signatories": [

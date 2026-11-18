@@ -7,7 +7,6 @@ function cellValue(column, row) {
   if (key === 'name') return row.name;
   if (key === 'basicPay') return formatNumber(row.basicPayValue);
   if (key === 'netPay') return formatNumber(row.netPay);
-  if (key === 'netPayTotal') return formatNumber(row.netPayTotal);
 
   return '';
 }

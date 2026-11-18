@@ -12,7 +12,7 @@ _General Payroll_ sheet.
 
 - It is a **Electron** app: Electron is a browser (Chromium) wrapped in a
   desktop window. The screen part of the app is a normal React web page.
-- The sheet is printed on **A4 landscape** paper (297mm wide × 210mm tall).
+- The sheet is printed on **A4 portrait** paper (210mm wide × 297mm tall).
 - Everything you type is saved **on the computer**, in the browser's
   `localStorage` (see `src/hooks/usePayroll.js`). There is no server and no
   database.
@@ -100,12 +100,12 @@ printed sheet always matches what is on the screen.
 
 **Printing, in detail**
 
-- `payroll:print` → `webContents.print({ pageSize: 'A4', landscape: true, preferCSSPageSize: true })` —
-  opens the system print dialog with A4 landscape already chosen.
+- `payroll:print` → `webContents.print({ pageSize: 'A4', landscape: false, preferCSSPageSize: true })` —
+  opens the system print dialog with A4 portrait already chosen.
 - `payroll:save-pdf` → asks the user where to save the file, then
-  `webContents.printToPDF({ preferCSSPageSize: true, landscape: true })` and writes the bytes to disk.
+  `webContents.printToPDF({ preferCSSPageSize: true, landscape: false })` and writes the bytes to disk.
   `preferCSSPageSize` means the PDF obeys the `@page` rule in `src/print/print.css`
-  (A4 landscape, 12mm margins).
+  (A4 portrait, 12mm margins).
 
 ### 4.3 `scripts/` — helpers that are not part of the app
 
@@ -124,12 +124,12 @@ printed sheet always matches what is on the screen.
 | `src/App.jsx`                    | The screen composition: the app bar, the editable sheet, the signatory blocks, the toast — and the **hidden print copy** (`PrintPayroll`), which is the only thing that is printed. |
 | `src/hooks/usePayroll.js`        | The brain of the app: all the state (header, columns, employees, signatories), the draft in `localStorage`, and every action the UI can trigger.                                    |
 | `src/hooks/useGridNavigation.js` | Arrow Up / Arrow Down move between rows, Enter moves to the next cell, Ctrl+Enter adds a row.                                                                                       |
-| `src/lib/calculations.js`        | Pure helpers: `computeRow` (net pay, net pay total), `computeTotals` (the TOTAL row), `hasEmployeeContent` (which rows are printed).                                                |
+| `src/lib/calculations.js`        | Pure helpers: `computeRow` (net pay), `computeTotals` (the TOTAL row), `hasEmployeeContent` (which rows are printed).                                                               |
 | `src/lib/columns.js`             | The columns of the sheet, their labels and their **print widths in millimetres**.                                                                                                   |
 | `src/lib/format.js`              | Formatting and validation: peso numbers, decimal sanitising, PDF file names.                                                                                                        |
 | `src/lib/navigation.js`          | Small helpers behind the grid keyboard movement.                                                                                                                                    |
 | `src/print/PrintPayroll.jsx`     | The paper copy: company header, the grid, the totals row and the signature band.                                                                                                    |
-| `src/print/print.css`            | Print-only styling — A4 landscape, millimetres, black rules.                                                                                                                        |
+| `src/print/print.css`            | Print-only styling — A4 portrait, millimetres, black rules.                                                                                                                         |
 | `src/styles/theme.css`           | The colour variables and the Bootstrap primary override.                                                                                                                            |
 | `src/styles/layout.css`          | The screen layout: app bar, sheet card, section headings, header block, signatories, columns panel.                                                                                 |
 | `src/styles/table.css`           | The grid: table wrapper, inputs, cells, row actions, totals row.                                                                                                                    |
@@ -141,7 +141,7 @@ Think of this as the app's "model layer". It holds:
 
 - **The header** — company name, address, division and the pay period (`DEFAULT_META`).
 - **The columns** — which optional money columns are visible (`DEFAULT_COLUMNS`).
-- **The employees** — one row each: name, basic pay, a list of deduction entries (a reason and an amount per entry) and the net pay total override.
+- **The employees** — one row each: name, basic pay and a list of deduction entries (a reason and an amount per entry). Net pay is computed on the fly, not stored.
 - **The signatories** — the four blocks with their roles, names and positions (`DEFAULT_SIGNATORIES`).
 - **Saving and loading** — the draft is written to `localStorage` under the key
   `pitac-payroll-general-draft-v1`, a fraction of a second after every change.
@@ -180,7 +180,7 @@ They are grouped in folders by role.
 | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | `PayrollHeader.jsx`     | The company name, the address, the division and the `PAYROLL FOR THE MONTH OF …` line.                                        |
 | `EmployeesSection.jsx`  | The grid: the headings, the _Add Employee_ button, the rows and the totals row.                                               |
-| `EmployeeRow.jsx`       | One employee: name, basic pay, the deduction cell, the worked-out net pay, the net pay total and the empty signature cell.    |
+| `EmployeeRow.jsx`       | One employee: name, basic pay, the deduction cell, the worked-out net pay and the empty signature cell.                       |
 | `DeductionCell.jsx`     | One employee's deduction list: a reason and amount per line, a `×` to remove a line, the line total, and _Add new deduction_. |
 | `TotalRow.jsx`          | The `TOTAL` row of the on-screen grid.                                                                                        |
 | `SignaturesSection.jsx` | The four signatory blocks (_Prepared by_, _Certified Correct by_, _Approved by_, _Paid by_), each with a name and a position. |
@@ -230,30 +230,38 @@ The screen styles are split into four small files, each with one job:
 
 ### How the print layout works
 
-- The page is **A4 landscape with 12mm margins**, so the usable box is
-  273mm × 186mm.
+- The page is **A4 portrait with 12mm margins**, so the usable box is
+  186mm × 273mm.
 - The printed sheet is deliberately **bigger and darker than a normal form**
   because it is read by people in their senior years: body text is 11.5pt in
   weight 600, headers 9.5pt in weight 800, and every rule is **solid black**.
-  Never switch the print styles back to pale grey text, light grey separators
-  or hairline borders — cheap printers drop them out, and older eyes need the
-  contrast.
+  Secondary lines may be a **very dark grey** (the address and signatory
+  position use `#374151` / `#4b5563`), but never pale grey text, light grey
+  separators or hairline borders — cheap printers drop them out, and older eyes
+  need the contrast.
+- The **header** keeps the v0.1.0 type scale: company 14pt/700, address 9pt,
+  division 10pt/700, sheet title 11pt/700. The **signatories** use 9pt role,
+  9pt/700 name and 8.5pt position with a 12mm signature line.
+- The signatory band is **pinned to the bottom of the printed page**: the print
+  document is a flex column with `min-height: 271mm`, and `.print-footer` has
+  `margin-top: auto`. On a sheet that overflows, the band follows the table onto
+  the last page.
 - The table is `width: 100%` with `table-layout: fixed`. The column widths are
   written in **millimetres** in `src/lib/columns.js` and add up to exactly
-  273mm — name 65, basic pay 32, deduction 68, net pay 34, net pay total 38,
-  signature 36. Keep that sum at 273mm or the table will overflow the page;
+  186mm — name 38, basic pay 22, deduction 48, net pay 50, signature 28.
+  Net pay keeps the width of the old net pay + net pay total pair. Keep the sum
+  at 186mm or the table will overflow the page;
   widen a money column by taking the space from the name column, which has the
   most slack.
 - The **Deduction** column holds each employee's own list of entries. On paper
   it prints as a small two-column list — reason on the left, amount beside it,
   9pt — followed by that employee's **Total** in bold with a rule above it.
-  The list is why the column is the widest money column (68mm) and why a row
-  with deductions is taller than one without.
-- Row padding is **5pt**. The large type plus the deduction lists mean a page
-  holds **about four employees when each list has three entries**; every extra
-  entry makes that employee's row a little taller, and shorter lists fit more
-  employees. Check the total height before growing the type, padding or footer
-  gap again.
+  The list is why the column is one of the widest money columns (48mm) and why
+  a row with deductions is taller than one without.
+- Row padding is **5pt**. The large type plus the deduction lists make each row
+  tall, but portrait A4 has 273mm of vertical room, so longer sheets fit on one
+  page. Very long sheets spill onto a second page; check the total height before
+  growing the type, padding or footer gap again.
 - `thead { display: table-header-group }` makes the column headers print again
   on a second page, and `break-inside: avoid` keeps a row and the signature
   band from being split in half.
@@ -261,7 +269,7 @@ The screen styles are split into four small files, each with one job:
   label away from the edge. `text-indent: -0.05em` cancels that, so a header
   sits exactly above its figures.
 - The money columns are wide enough for the enlarged, bold header labels
-  (_Net Pay Total_, _Name of Employee_) to stay on one line. If a label ever
+  (_Net Pay_, _Name of Employee_) to stay on one line. If a label ever
   wraps, widen its column rather than shrinking the font.
 
 ---

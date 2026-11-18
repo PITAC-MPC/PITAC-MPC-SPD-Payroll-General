@@ -1,7 +1,7 @@
 # PITAC-MPC SPD Payroll General — App Plan
 
 Desktop app for producing the cooperative's monthly **General Payroll** sheet: employees on the
-rows, the money columns across, the net pay worked out for you, and a **landscape A4** print / PDF
+rows, the money columns across, the net pay worked out for you, and a **portrait A4** print / PDF
 output that mirrors the existing paper form.
 
 ---
@@ -106,7 +106,6 @@ launch focuses the existing window.
         { id: 'uuid', reason: 'Chicken', amount: '200' },
         { id: 'uuid', reason: 'CA', amount: '300' },
       ],
-      netPayTotalOverride: '',   // empty → the computed net pay is used
     },
   ],
   signatories: [
@@ -131,10 +130,10 @@ sheet.
 - The **header** is the company name, the address, the division and the pay-period line — all four
   are typed on the sheet and printed as they are.
 - The **grid** is one row per employee: `Name of Employee`, `Basic Pay`, `Deduction`, `Net Pay`,
-  `Net Pay Total`, `Signature`. The Deduction cell is a list of `(reason, amount)` lines with a
+  `Signature`. The Deduction cell is a list of `(reason, amount)` lines with a
   per-employee total, a `×` on each line and **Add new deduction** underneath.
-- **Net Pay** is worked out and shown in a read-only cell; **Net Pay Total** is an editable field
-  pre-filled with the same figure.
+- **Net Pay** is worked out and shown in a read-only cell: basic pay minus that row's deductions.
+  There is no second net-pay column and no override.
 - The **Signature** cell is deliberately empty — it is for the wet signature on the printed sheet.
 - The **TOTAL** row sums every column and counts the employees.
 - The **signatory blocks** are typed on the screen and printed in one band of four.
@@ -144,17 +143,17 @@ sheet.
 
 ### 5.2 Print view
 
-A second copy of the same sheet, hidden on screen, printed on A4 landscape.
+A second copy of the same sheet, hidden on screen, printed on A4 portrait.
 
 ---
 
-## 6. Print / A4 landscape specification
+## 6. Print / A4 portrait specification
 
-**Page:** A4 landscape = `297mm × 210mm`. With 12mm margins the usable box is `273mm × 186mm`.
+**Page:** A4 portrait = `210mm × 297mm`. With 12mm margins the usable box is `186mm × 273mm`.
 
 ```css
 @page {
-  size: A4 landscape;
+  size: A4 portrait;
   margin: 12mm;
 }
 @media print {
@@ -164,8 +163,14 @@ A second copy of the same sheet, hidden on screen, printed on A4 landscape.
     display: none !important;
   }
   .print-document {
-    display: block !important;
+    display: flex !important;
+    flex-direction: column;
     width: 100%;
+    min-height: 271mm; /* 273mm usable - 2mm safety so no blank page */
+  }
+  .print-footer {
+    margin-top: auto; /* signatories sit at the bottom of the sheet */
+    padding-top: 10mm;
   }
   .print-table {
     width: 100%;
@@ -184,9 +189,9 @@ A second copy of the same sheet, hidden on screen, printed on A4 landscape.
 
 Layout decisions:
 
-- **Columns in millimetres, totalling exactly 273mm**: name 65, basic pay 32, deduction 68,
-  net pay 34, net pay total 38, signature 36. They live in `src/lib/columns.js` so the paper and
-  the code cannot drift apart.
+- **Columns in millimetres, totalling exactly 186mm**: name 38, basic pay 22, deduction 48,
+  net pay 50, signature 28. Net pay keeps the width of the old net pay + net pay total pair.
+  They live in `src/lib/columns.js` so the paper and the code cannot drift apart.
 - **The deduction list prints as its own mini table**: reason on the left, amount beside it, then
   the employee's total in bold with a rule above it. Only entries with an amount print.
 - **Everything left-aligned.** The uppercase headers carry `letter-spacing`, which also pushes
@@ -194,16 +199,21 @@ Layout decisions:
   above its figures.
 - **Empty means empty.** A zero deduction prints as a blank cell (as on the paper), not as `0.00`.
 - **Signature lines**: a rule with the name and the position under it, in four columns.
-- **Both output paths agree**: `printToPDF` and `webContents.print` run with `landscape: true` and
-  `preferCSSPageSize: true`, so the saved PDF and the print dialog produce the same page.
+- **Signatories sit at the foot of the page**: the print document is a flex column at least one
+  page tall (`min-height: 271mm`), and `.print-footer` uses `margin-top: auto`, so a payroll that
+  does not fill the sheet still has its signatory band on the bottom edge of the usable box. A
+  longer sheet pushes the band onto the end of the last page.
+- **Header and signatories use the v0.1.0 type scale**: company 14pt/700, address 9pt dark grey,
+  division 10pt/700, title 11pt/700; signatory role 9pt/600, name 9pt/700, position 8.5pt.
+- **Both output paths agree**: `printToPDF` and `webContents.print` run with `landscape: false`
+  and `preferCSSPageSize: true`, so the saved PDF and the print dialog produce the same page.
 
 ---
 
 ## 7. Pure logic to unit-test (Vitest)
 
 - `computeRow()` — net pay from basic pay minus the sum of the row's deduction entries; blank
-  amounts count as zero; the net pay total override wins over the computed figure; rounding to
-  two decimals.
+  amounts count as zero; rounding to two decimals.
 - `computeTotals()` — one sum per visible column; a hidden column is not summed.
 - `computePayroll()` — rows and totals together; an empty payroll is not an error.
 - `hasEmployeeContent()` — only rows with something on them are printed.
@@ -215,16 +225,16 @@ Layout decisions:
 
 ## 8. Confirmed decisions
 
-| #   | Decision                                                                                                                |
-| --- | ----------------------------------------------------------------------------------------------------------------------- |
-| 1   | **Two net-pay columns**: the left one is worked out, the right one is an editable value filled in with the same figure. |
-| 2   | **English labels only** — `Basic Pay`, `Deduction`, `Net Pay`, `Net Pay Total`.                                         |
-| 3   | **The signature column is blank** on the paper — signed by hand after printing.                                         |
-| 4   | **The signatories are editable fields**, prefilled with the four names and positions from the paper form.               |
-| 5   | **A4 landscape** for both the print dialog and the PDF export.                                                          |
-| 6   | **The optional money columns can be switched off** so the sheet can be trimmed to a form with fewer columns.            |
-| 7   | **One draft, kept locally**; **New Payroll** clears it.                                                                 |
-| 8   | **Deductions are a per-employee list** of reason/amount entries — any deduction can be added or removed.                |
+| #   | Decision                                                                                                     |
+| --- | ------------------------------------------------------------------------------------------------------------ |
+| 1   | **One net-pay column**: computed from basic pay minus deductions, with no manual override.                   |
+| 2   | **English labels only** — `Basic Pay`, `Deduction`, `Net Pay`.                                               |
+| 3   | **The signature column is blank** on the paper — signed by hand after printing.                              |
+| 4   | **The signatories are editable fields**, prefilled with the four names and positions from the paper form.    |
+| 5   | **A4 portrait** for both the print dialog and the PDF export.                                                |
+| 6   | **The optional money columns can be switched off** so the sheet can be trimmed to a form with fewer columns. |
+| 7   | **One draft, kept locally**; **New Payroll** clears it.                                                      |
+| 8   | **Deductions are a per-employee list** of reason/amount entries — any deduction can be added or removed.     |
 
 ### Still worth deciding
 
